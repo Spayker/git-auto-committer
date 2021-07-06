@@ -25,4 +25,5 @@ hs_err_pid*
 # idea related files
 java_based/.idea
 java_based/*.iml
+java_based/target
 
