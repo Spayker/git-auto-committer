@@ -49,19 +49,17 @@ public class Main {
 
 
                 Status status = git.status().call();
-                System.out.println("Added: " + status.getAdded());
-                System.out.println("Changed: " + status.getChanged());
-                System.out.println("Conflicting: " + status.getConflicting());
-                System.out.println("ConflictingStageState: " + status.getConflictingStageState());
-                System.out.println("IgnoredNotInIndex: " + status.getIgnoredNotInIndex());
-                System.out.println("Missing: " + status.getMissing());
-                System.out.println("Modified: " + status.getModified());
-                System.out.println("Removed: " + status.getRemoved());
-                System.out.println("Untracked: " + status.getUntracked());
-                System.out.println("UntrackedFolders: " + status.getUntrackedFolders());
+                System.out.println("folder without changes: " + withoutChanges(status));
             } catch (IOException | GitAPIException e) {
                 e.printStackTrace();
             }
         });
+    }
+    
+    private static boolean withoutChanges(Status status) {
+        return status.getAdded().isEmpty() && status.getChanged().isEmpty() && status.getConflicting().isEmpty() 
+            && status.getConflictingStageState().isEmpty() && status.getIgnoredNotInIndex().isEmpty()
+                && status.getMissing().isEmpty() && status.getModified().isEmpty() && status.getRemoved().isEmpty()
+                    && status.getUntracked().isEmpty() && status.getUntrackedFolders().isEmpty(); 
     }
 }
