@@ -3,14 +3,16 @@ package com.spayker.ac;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.lib.StoredConfig;
 import org.eclipse.jgit.lib.UserConfig;
-import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.transport.CredentialsProvider;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.HashMap;
 
 import static com.spayker.ac.model.git.CHANGE.*;
 
@@ -18,14 +20,12 @@ public class Main {
 
     private static final String CURRENT_APP_RUNNING_DIR = System.getProperty("user.dir");
     private static final String GIT_REMOTE_TYPE = "origin";
-
-    // get user login & password
-    // get folder path with with git projects
-
-    // run git add, git commit, git push commands
+    private static final String EMPTY_STRING = "";
+    private static String PRIVATE_ACCESS_TOKEN;
 
     public static void main(String[] args) {
-        // get user login password
+        // get user token
+        PRIVATE_ACCESS_TOKEN = Arrays.stream(args).findFirst().orElse(EMPTY_STRING);
 
         // get folder projects
         System.out.println("Working Directory = " + CURRENT_APP_RUNNING_DIR);
@@ -39,14 +39,17 @@ public class Main {
     private static void processFoundChanges(Git git, Map<String, String> changes) {
         changes.forEach((type, fileName) -> {
             System.out.println(git.toString() + " type: " + type + " fileName: "+ fileName);
-            String author = git.getRepository().getConfig().get( UserConfig.KEY ).getAuthorName();
-            String email = git.getRepository().getConfig().get( UserConfig.KEY ).getAuthorEmail();
+
+            StoredConfig config = git.getRepository().getConfig();
+
+            String author = config.get( UserConfig.KEY ).getAuthorName();
+            String email = config.get( UserConfig.KEY ).getAuthorEmail();
 
             try {
                 git.add().addFilepattern(fileName).call();
                 git.commit().setAuthor(author, email).setMessage(type + " " + fileName).call();
 
-                CredentialsProvider cp = new UsernamePasswordCredentialsProvider(email, "1_2Qazxsw");
+                CredentialsProvider cp = new UsernamePasswordCredentialsProvider(email, PRIVATE_ACCESS_TOKEN);
                 git.push().setCredentialsProvider(cp).setRemote(GIT_REMOTE_TYPE).call();
             } catch (GitAPIException e) {
                 e.printStackTrace();
