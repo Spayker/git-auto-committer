@@ -13,6 +13,7 @@
         <maven.compiler.target>10</maven.compiler.target>
         <jgit.version>5.1.3.201810200350-r</jgit.version>
         <jackson.yaml.version>2.11.1</jackson.yaml.version>
+        <slf4j.version>1.7.28</slf4j.version>
     </properties>
 
     <dependencies>
@@ -25,6 +26,17 @@
             <groupId>com.fasterxml.jackson.dataformat</groupId>
             <artifactId>jackson-dataformat-yaml</artifactId>
             <version>${jackson.yaml.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${slf4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <version>${slf4j.version}</version>
         </dependency>
     </dependencies>
 
