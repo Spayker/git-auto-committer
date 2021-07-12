@@ -26,12 +26,12 @@ public class Main {
     private static final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(POOL_SIZE);
     private static final String EMPTY_STRING = "";
 
+    private static final long INITIAL_DELAY = 5;
+    private static final long PERIOD = 5;
+    private static final TimeUnit UNIT = TimeUnit.MINUTES;
 
     public static void main(String[] args) {
-
-        scheduler.scheduleAtFixedRate(new ChangeProcessor(Arrays.stream(args).findFirst().orElse(EMPTY_STRING)), 8, 8, TimeUnit.HOURS);
-
-
+        scheduler.scheduleAtFixedRate(new ChangeProcessor(Arrays.stream(args).findFirst().orElse(EMPTY_STRING)), INITIAL_DELAY, PERIOD, UNIT);
     }
 
 }
