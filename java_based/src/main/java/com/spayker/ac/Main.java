@@ -1,6 +1,7 @@
 package com.spayker.ac;
 
 import com.spayker.ac.task.ChangeProcessor;
+import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -20,18 +21,30 @@ import java.util.concurrent.TimeUnit;
 
 import static com.spayker.ac.model.git.CHANGE.*;
 
+@Slf4j
 public class Main {
+
+    private static final String CURRENT_APP_RUNNING_DIR = System.getProperty("user.dir");
 
     private static final int POOL_SIZE = 1;
     private static final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(POOL_SIZE);
-    private static final String EMPTY_STRING = "";
 
-    private static final long INITIAL_DELAY = 5;
-    private static final long PERIOD = 5;
+    private static final long INITIAL_DELAY = 0;
+    private static final long PERIOD = 1;
     private static final TimeUnit UNIT = TimeUnit.MINUTES;
 
     public static void main(String[] args) {
-        scheduler.scheduleAtFixedRate(new ChangeProcessor(Arrays.stream(args).findFirst().orElse(EMPTY_STRING)), INITIAL_DELAY, PERIOD, UNIT);
+        String path, token;
+
+        if (args.length == 2) {
+            path = args[0];
+            token = args[1];
+        } else {
+            path = CURRENT_APP_RUNNING_DIR;
+            token = args[0];
+        }
+
+        scheduler.scheduleAtFixedRate(new ChangeProcessor(path, token), INITIAL_DELAY, PERIOD, UNIT);
     }
 
 }

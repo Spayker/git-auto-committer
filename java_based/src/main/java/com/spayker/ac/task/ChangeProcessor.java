@@ -1,5 +1,6 @@
 package com.spayker.ac.task;
 
+import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -17,23 +18,26 @@ import java.util.Map;
 import static com.spayker.ac.model.git.CHANGE.*;
 import static com.spayker.ac.model.git.CHANGE.REMOVED;
 
+@Slf4j
 public class ChangeProcessor implements Runnable {
 
-    private static final String CURRENT_APP_RUNNING_DIR = System.getProperty("user.dir");
+
     private static final String GIT_REMOTE_TYPE = "origin";
 
+    private String projectsPath;
     private String privateAccessToken;
 
     private ChangeProcessor() { }
 
-    public ChangeProcessor(String privateAccessToken) {
+    public ChangeProcessor(String projectsPath, String privateAccessToken) {
+        this.projectsPath = projectsPath;
         this.privateAccessToken = privateAccessToken;
     }
 
     @Override
     public void run() {
         // get folder projects
-        System.out.println("Working Directory = " + CURRENT_APP_RUNNING_DIR);
+        log.info("Working Directory = " + projectsPath);
         File directory = new File("E:\\projects\\arma3\\");
         File[] projectFolders = directory.listFiles(File::isDirectory);
 
@@ -43,7 +47,7 @@ public class ChangeProcessor implements Runnable {
 
     private void processFoundChanges(Git git, Map<String, String> changes) {
         changes.forEach((type, fileName) -> {
-            System.out.println(git.toString() + " type: " + type + " fileName: "+ fileName);
+            log.info(git.toString() + " type: " + type + " fileName: "+ fileName);
 
             StoredConfig config = git.getRepository().getConfig();
 
@@ -57,7 +61,7 @@ public class ChangeProcessor implements Runnable {
                 CredentialsProvider cp = new UsernamePasswordCredentialsProvider(email, privateAccessToken);
                 git.push().setCredentialsProvider(cp).setRemote(GIT_REMOTE_TYPE).call();
             } catch (GitAPIException e) {
-                e.printStackTrace();
+                log.error(e.getMessage());
             }
         });
     }
@@ -72,14 +76,14 @@ public class ChangeProcessor implements Runnable {
                 boolean hasNoChange = withoutChanges(status);
 
                 if(hasNoChange){
-                    System.out.println("Project has no changes in: " + folder);
+                    log.info("Project has no changes in: " + folder);
                 } else {
                     Map<String, String> changes = getChanges(status);
                     changes.forEach((name, path) -> System.out.println(name.toUpperCase() + ": " + path));
                     projectDifferences.put(git, changes);
                 }
             } catch (IOException | GitAPIException e) {
-                e.printStackTrace();
+                log.error(e.getMessage());
             }
         });
         return projectDifferences;
