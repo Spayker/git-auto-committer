@@ -44,6 +44,9 @@ public class Main {
             token = args[0];
         }
 
+        // get folder projects
+        log.info("Working Directory = " + path);
+
         scheduler.scheduleAtFixedRate(new ChangeProcessor(path, token), INITIAL_DELAY, PERIOD, UNIT);
     }
 
