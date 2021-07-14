@@ -58,8 +58,7 @@ public class ChangeProcessor implements Runnable {
                 git.commit().setAuthor(author, email).setMessage(type + " " + fileName).call();
 
                 CredentialsProvider cp = new UsernamePasswordCredentialsProvider(email, privateAccessToken);
-                Iterable<PushResult> result = git.push().setCredentialsProvider(cp).setRemote(GIT_REMOTE_TYPE).call();
-                result.forEach(r -> log.info(r.getMessages()));
+                git.push().setCredentialsProvider(cp).setRemote(GIT_REMOTE_TYPE).call();
             } catch (GitAPIException e) {
                 log.warn(e.getMessage());
             }
@@ -79,7 +78,7 @@ public class ChangeProcessor implements Runnable {
                     log.info("Project has no changes in: " + folder);
                 } else {
                     Map<String, String> changes = getChanges(status);
-                    changes.forEach((name, path) -> System.out.println(name.toUpperCase() + ": " + path));
+                    changes.forEach((name, path) -> log.info(name.toUpperCase() + ": " + path));
                     projectDifferences.put(git, changes);
                 }
             } catch (IOException | GitAPIException e) {
