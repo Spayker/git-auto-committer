@@ -45,7 +45,7 @@ public class ChangeProcessor implements Runnable {
 
     private void processFoundChanges(Git git, Map<String, String> changes) {
         changes.forEach((type, fileName) -> {
-            log.info(git.toString() + " type: " + type + " fileName: "+ fileName);
+            log.info(" type: " + type + " fileName: "+ fileName);
 
             StoredConfig config = git.getRepository().getConfig();
 
@@ -59,7 +59,7 @@ public class ChangeProcessor implements Runnable {
                 CredentialsProvider cp = new UsernamePasswordCredentialsProvider(email, privateAccessToken);
                 git.push().setCredentialsProvider(cp).setRemote(GIT_REMOTE_TYPE).call();
             } catch (GitAPIException e) {
-                log.error(e.getMessage());
+                log.warn(e.getMessage());
             }
         });
     }
@@ -81,7 +81,7 @@ public class ChangeProcessor implements Runnable {
                     projectDifferences.put(git, changes);
                 }
             } catch (IOException | GitAPIException e) {
-                log.error(e.getMessage());
+                log.warn(e.getMessage());
             }
         });
         return projectDifferences;
