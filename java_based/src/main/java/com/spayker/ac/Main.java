@@ -29,8 +29,8 @@ public class Main {
     private static final int POOL_SIZE = 1;
     private static final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(POOL_SIZE);
 
-    private static final long INITIAL_DELAY = 0;
-    private static final long PERIOD = 1;
+    private static final long INITIAL_DELAY = 1;
+    private static final long PERIOD = 15;
     private static final TimeUnit UNIT = TimeUnit.MINUTES;
 
     public static void main(String[] args) {
