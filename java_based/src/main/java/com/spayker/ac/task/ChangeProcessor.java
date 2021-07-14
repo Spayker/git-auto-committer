@@ -7,6 +7,7 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.StoredConfig;
 import org.eclipse.jgit.lib.UserConfig;
 import org.eclipse.jgit.transport.CredentialsProvider;
+import org.eclipse.jgit.transport.PushResult;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
 import java.io.File;
@@ -57,7 +58,8 @@ public class ChangeProcessor implements Runnable {
                 git.commit().setAuthor(author, email).setMessage(type + " " + fileName).call();
 
                 CredentialsProvider cp = new UsernamePasswordCredentialsProvider(email, privateAccessToken);
-                git.push().setCredentialsProvider(cp).setRemote(GIT_REMOTE_TYPE).call();
+                Iterable<PushResult> result = git.push().setCredentialsProvider(cp).setRemote(GIT_REMOTE_TYPE).call();
+                result.forEach(r -> log.info(r.getMessages()));
             } catch (GitAPIException e) {
                 log.warn(e.getMessage());
             }
