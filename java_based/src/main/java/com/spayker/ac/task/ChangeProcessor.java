@@ -36,9 +36,7 @@ public class ChangeProcessor implements Runnable {
 
     @Override
     public void run() {
-        // get folder projects
-        log.info("Working Directory = " + projectsPath);
-        File directory = new File("E:\\projects\\arma3\\");
+        File directory = new File(projectsPath);
         File[] projectFolders = directory.listFiles(File::isDirectory);
 
         Map<Git, Map<String, String>> projectDifferences = collectProjectFolders(projectFolders);
@@ -95,7 +93,6 @@ public class ChangeProcessor implements Runnable {
         status.getChanged().forEach(a -> changes.put(CHANGED.getValue(), a));
         status.getConflicting().forEach(a -> changes.put(CONFLICTING.getValue(), a));
         status.getConflictingStageState().forEach((path, stageState) -> changes.put(CONFLICTING_STAGE_STATE.getValue(), path));
-        status.getIgnoredNotInIndex().forEach(a -> changes.put(IGNORED_NOT_IN_INDEX.getValue(), a));
         status.getMissing().forEach(a -> changes.put(MISSING.getValue(), a));
         status.getModified().forEach(a -> changes.put(MODIFIED.getValue(), a));
         status.getRemoved().forEach(a -> changes.put(REMOVED.getValue(), a));
