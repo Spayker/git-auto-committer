@@ -50,8 +50,8 @@ public class ChangeProcessor implements Runnable {
 
             StoredConfig config = git.getRepository().getConfig();
 
-            String author = config.get( UserConfig.KEY ).getAuthorName();
-            String email = config.get( UserConfig.KEY ).getAuthorEmail();
+            String author = config.get(UserConfig.KEY).getAuthorName();
+            String email = config.get(UserConfig.KEY).getAuthorEmail();
 
             try {
                 git.add().addFilepattern(fileName).call();
