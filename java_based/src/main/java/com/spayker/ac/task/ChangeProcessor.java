@@ -1,5 +1,6 @@
 package com.spayker.ac.task;
 
+import com.spayker.ac.model.git.GitData;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.Status;
@@ -7,14 +8,13 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.StoredConfig;
 import org.eclipse.jgit.lib.UserConfig;
 import org.eclipse.jgit.transport.CredentialsProvider;
-import org.eclipse.jgit.transport.PushResult;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.spayker.ac.model.git.CHANGE.*;
 import static com.spayker.ac.model.git.CHANGE.REMOVED;
@@ -38,37 +38,63 @@ public class ChangeProcessor implements Runnable {
     @Override
     public void run() {
         File directory = new File(projectsPath);
-        File[] projectFolders = directory.listFiles(File::isDirectory);
+        List<File> subFolders = getSubdirs(directory);
 
-        Map<Git, Map<String, String>> projectDifferences = collectProjectFolders(projectFolders);
+        List<File> filteredGitFolders = subFolders.stream()
+                .filter(f -> containGitFolder(f.getPath()))
+                .collect(Collectors.toList());
+        Map<GitData, Map<String, String>> projectDifferences = collectProjectFolders(filteredGitFolders);
         projectDifferences.forEach(this::processFoundChanges);
     }
 
-    private void processFoundChanges(Git git, Map<String, String> changes) {
-        changes.forEach((type, fileName) -> {
-            log.info(" type: " + type + " fileName: "+ fileName);
+    private List<File> getSubdirs(File file) {
+        List<File> subdirs = Arrays.stream(Objects.requireNonNull(file.listFiles(File::isDirectory)))
+                .filter(f -> !f.getName().contains(".git"))
+                .collect(Collectors.toList());
+        subdirs = new ArrayList<>(subdirs);
 
-            StoredConfig config = git.getRepository().getConfig();
-
-            String author = config.get(UserConfig.KEY).getAuthorName();
-            String email = config.get(UserConfig.KEY).getAuthorEmail();
-
-            try {
-                git.add().addFilepattern(fileName).call();
-                git.commit().setAuthor(author, email).setMessage(type + " " + fileName).call();
-
-                CredentialsProvider cp = new UsernamePasswordCredentialsProvider(email, privateAccessToken);
-                git.push().setCredentialsProvider(cp).setRemote(GIT_REMOTE_TYPE).call();
-            } catch (GitAPIException e) {
-                log.warn(e.getMessage());
-            }
-        });
+        List<File> deepSubdirs = new ArrayList<>();
+        for(File subdir : subdirs) {
+            deepSubdirs.addAll(getSubdirs(subdir));
+        }
+        subdirs.addAll(deepSubdirs);
+        return subdirs;
     }
 
-    private Map<Git, Map<String, String>> collectProjectFolders(File[] projectFolders) {
-        Map<Git, Map<String, String>> projectDifferences = new HashMap<>();
+    private boolean containGitFolder(String absolutePath) {
+        File directory = new File(absolutePath);
+        File[] sameLevelFolders = directory.listFiles(File::isDirectory);
+        return Arrays.stream(Objects.requireNonNull(sameLevelFolders))
+                .anyMatch(f -> f.getName().equalsIgnoreCase(".git"));
+    }
 
-        Arrays.stream(projectFolders).forEach(folder -> {
+    private void processFoundChanges(GitData gitData, Map<String, String> changes) {
+
+        if(changes.size() > 0) {
+            Git git = gitData.getGit();
+            StoredConfig config = git.getRepository().getConfig();
+            String author = config.get(UserConfig.KEY).getAuthorName();
+            String email = config.get(UserConfig.KEY).getAuthorEmail();
+            CredentialsProvider cp = new UsernamePasswordCredentialsProvider(email, privateAccessToken);
+
+            changes.forEach((type, fileName) -> {
+                try {
+                    git.add().addFilepattern(fileName).call();
+                    git.commit().setAuthor(author, email).setMessage(type + " " + fileName).call();
+                    git.push().setCredentialsProvider(cp).setRemote(GIT_REMOTE_TYPE).call();
+                    log.info("PUSHED into " + gitData.getFolderName() + " project");
+                } catch (GitAPIException e) {
+                    e.printStackTrace();
+                    log.error(e.getMessage());
+                }
+            });
+        }
+    }
+
+    private Map<GitData, Map<String, String>> collectProjectFolders(List<File> projectFolders) {
+        Map<GitData, Map<String, String>> projectDifferences = new HashMap<>();
+
+        projectFolders.forEach(folder -> {
             try {
                 Git git = Git.open( folder );
                 Status status = git.status().call();
@@ -79,7 +105,9 @@ public class ChangeProcessor implements Runnable {
                 } else {
                     Map<String, String> changes = getChanges(status);
                     changes.forEach((name, path) -> log.info(name.toUpperCase() + ": " + path));
-                    projectDifferences.put(git, changes);
+
+                    GitData gitData = new GitData(git, folder.getName());
+                    projectDifferences.put(gitData, changes);
                 }
             } catch (IOException | GitAPIException e) {
                 log.warn(e.getMessage());
@@ -105,6 +133,4 @@ public class ChangeProcessor implements Runnable {
                 && status.getConflictingStageState().isEmpty() && status.getIgnoredNotInIndex().isEmpty()
                 && status.getMissing().isEmpty() && status.getModified().isEmpty() && status.getRemoved().isEmpty();
     }
-
-
 }
