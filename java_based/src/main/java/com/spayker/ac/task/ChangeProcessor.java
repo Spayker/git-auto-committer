@@ -2,12 +2,16 @@ package com.spayker.ac.task;
 
 import com.spayker.ac.model.git.GitData;
 import lombok.extern.slf4j.Slf4j;
+import org.eclipse.jgit.api.DiffCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.diff.DiffEntry;
+import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.lib.StoredConfig;
 import org.eclipse.jgit.lib.UserConfig;
 import org.eclipse.jgit.transport.CredentialsProvider;
+import org.eclipse.jgit.transport.FetchResult;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
 import java.io.File;
@@ -68,23 +72,27 @@ public class ChangeProcessor implements Runnable {
     }
 
     private void processFoundChanges(GitData gitData, Map<String, String> changes) {
-        if(changes.size() > 0) {
-            Git git = gitData.getGit();
-            StoredConfig config = git.getRepository().getConfig();
-            String author = config.get(UserConfig.KEY).getAuthorName();
-            String email = config.get(UserConfig.KEY).getAuthorEmail();
-            CredentialsProvider cp = new UsernamePasswordCredentialsProvider(email, accessToken);
+        Git git = gitData.getGit();
+        StoredConfig config = git.getRepository().getConfig();
+        String author = config.get(UserConfig.KEY).getAuthorName();
+        String email = config.get(UserConfig.KEY).getAuthorEmail();
+        CredentialsProvider cp = new UsernamePasswordCredentialsProvider(email, accessToken);
 
-            changes.forEach((type, fileName) -> {
-                try {
-                    git.add().addFilepattern(fileName).call();
-                    git.commit().setAuthor(author, email).setMessage(type + " " + fileName).call();
-                    git.push().setCredentialsProvider(cp).setRemote(GIT_REMOTE_TYPE).call();
-                    log.info("PUSHED into " + gitData.getFolderName() + " project");
-                } catch (GitAPIException e) {
-                    log.error(e.getMessage());
-                }
-            });
+        changes.forEach((type, fileName) -> {
+            try {
+                git.add().addFilepattern(fileName).call();
+                git.commit().setAuthor(author, email).setMessage(type + " " + fileName).call();
+                log.info("COMMITTED into " + gitData.getFolderName() + " project");
+            } catch (GitAPIException e) {
+                log.error(e.getMessage());
+            }
+        });
+
+        try {
+            git.push().setCredentialsProvider(cp).setRemote(GIT_REMOTE_TYPE).call();
+            log.info("PUSHED into " + gitData.getFolderName() + " project");
+        } catch (GitAPIException e) {
+            log.error(e.getMessage());
         }
     }
 
@@ -95,10 +103,12 @@ public class ChangeProcessor implements Runnable {
             try {
                 Git git = Git.open( folder );
                 Status status = git.status().call();
-                boolean hasNoChange = withoutChanges(status);
+                boolean hasNoChange = hasChanges(status);
 
                 if(hasNoChange){
                     log.info("Project has no changes in: " + folder);
+                    GitData gitData = new GitData(git, folder.getName());
+                    projectDifferences.put(gitData, Collections.emptyMap());
                 } else {
                     Map<String, String> changes = getChanges(status);
                     changes.forEach((name, path) -> log.info(name.toUpperCase() + ": " + path));
@@ -125,7 +135,7 @@ public class ChangeProcessor implements Runnable {
         return changes;
     }
 
-    private boolean withoutChanges(Status status) {
+    private boolean hasChanges(Status status) {
         return status.getAdded().isEmpty() && status.getChanged().isEmpty() && status.getConflicting().isEmpty()
                 && status.getConflictingStageState().isEmpty() && status.getIgnoredNotInIndex().isEmpty()
                 && status.getMissing().isEmpty() && status.getModified().isEmpty() && status.getRemoved().isEmpty();
