@@ -11,7 +11,6 @@ import org.eclipse.jgit.transport.CredentialsProvider;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
 import java.io.File;
-import java.io.FileFilter;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -26,19 +25,20 @@ public class ChangeProcessor implements Runnable {
     private static final String GIT_REMOTE_TYPE = "origin";
 
     private String projectsPath;
-    private String privateAccessToken;
+    private String accessToken;
+    private final String GIT_FOLDER_NAME = ".git";
 
     private ChangeProcessor() { }
 
-    public ChangeProcessor(String projectsPath, String privateAccessToken) {
+    public ChangeProcessor(String projectsPath, String accessToken) {
         this.projectsPath = projectsPath;
-        this.privateAccessToken = privateAccessToken;
+        this.accessToken = accessToken;
     }
 
     @Override
     public void run() {
         File directory = new File(projectsPath);
-        List<File> subFolders = getSubdirs(directory);
+        List<File> subFolders = getSubDirs(directory);
 
         List<File> filteredGitFolders = subFolders.stream()
                 .filter(f -> containGitFolder(f.getPath()))
@@ -47,35 +47,33 @@ public class ChangeProcessor implements Runnable {
         projectDifferences.forEach(this::processFoundChanges);
     }
 
-    private List<File> getSubdirs(File file) {
-        List<File> subdirs = Arrays.stream(Objects.requireNonNull(file.listFiles(File::isDirectory)))
-                .filter(f -> !f.getName().contains(".git"))
+    private List<File> getSubDirs(File file) {
+        List<File> subDirs = Arrays.stream(Objects.requireNonNull(file.listFiles(File::isDirectory)))
+                .filter(f -> !f.getName().contains(GIT_FOLDER_NAME))
                 .collect(Collectors.toList());
-        subdirs = new ArrayList<>(subdirs);
 
-        List<File> deepSubdirs = new ArrayList<>();
-        for(File subdir : subdirs) {
-            deepSubdirs.addAll(getSubdirs(subdir));
+        List<File> deepSubDirs = new ArrayList<>();
+        for(File subDir: subDirs) {
+            deepSubDirs.addAll(getSubDirs(subDir));
         }
-        subdirs.addAll(deepSubdirs);
-        return subdirs;
+        subDirs.addAll(deepSubDirs);
+        return subDirs;
     }
 
     private boolean containGitFolder(String absolutePath) {
         File directory = new File(absolutePath);
         File[] sameLevelFolders = directory.listFiles(File::isDirectory);
         return Arrays.stream(Objects.requireNonNull(sameLevelFolders))
-                .anyMatch(f -> f.getName().equalsIgnoreCase(".git"));
+                .anyMatch(f -> f.getName().equalsIgnoreCase(GIT_FOLDER_NAME));
     }
 
     private void processFoundChanges(GitData gitData, Map<String, String> changes) {
-
         if(changes.size() > 0) {
             Git git = gitData.getGit();
             StoredConfig config = git.getRepository().getConfig();
             String author = config.get(UserConfig.KEY).getAuthorName();
             String email = config.get(UserConfig.KEY).getAuthorEmail();
-            CredentialsProvider cp = new UsernamePasswordCredentialsProvider(email, privateAccessToken);
+            CredentialsProvider cp = new UsernamePasswordCredentialsProvider(email, accessToken);
 
             changes.forEach((type, fileName) -> {
                 try {
@@ -84,7 +82,6 @@ public class ChangeProcessor implements Runnable {
                     git.push().setCredentialsProvider(cp).setRemote(GIT_REMOTE_TYPE).call();
                     log.info("PUSHED into " + gitData.getFolderName() + " project");
                 } catch (GitAPIException e) {
-                    e.printStackTrace();
                     log.error(e.getMessage());
                 }
             });
