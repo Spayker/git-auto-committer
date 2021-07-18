@@ -83,12 +83,7 @@ public class ChangeProcessor implements Runnable {
                 git.add().addFilepattern(fileName).call();
                 git.commit().setAuthor(author, email).setMessage(changeType + " " + fileName).call();
                 log.info("COMMITTED into " + gitData.getFolderName() + " project");
-
             }
-
-
-
-
 
             git.push().setCredentialsProvider(cp).setRemote(GIT_REMOTE_TYPE).call();
             log.info("PUSHED into " + gitData.getFolderName() + " project");
