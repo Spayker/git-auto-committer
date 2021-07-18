@@ -77,18 +77,19 @@ public class ChangeProcessor implements Runnable {
         String author = config.get(UserConfig.KEY).getAuthorName();
         String email = config.get(UserConfig.KEY).getAuthorEmail();
         CredentialsProvider cp = new UsernamePasswordCredentialsProvider(email, accessToken);
-
-        changes.forEach((type, fileName) -> {
-            try {
-                git.add().addFilepattern(fileName).call();
-                git.commit().setAuthor(author, email).setMessage(type + " " + fileName).call();
-                log.info("COMMITTED into " + gitData.getFolderName() + " project");
-            } catch (GitAPIException e) {
-                log.error(e.getMessage());
-            }
-        });
-
         try {
+            for (String changeType : changes.keySet()) {
+                String fileName = changes.get(changeType);
+                git.add().addFilepattern(fileName).call();
+                git.commit().setAuthor(author, email).setMessage(changeType + " " + fileName).call();
+                log.info("COMMITTED into " + gitData.getFolderName() + " project");
+
+            }
+
+
+
+
+
             git.push().setCredentialsProvider(cp).setRemote(GIT_REMOTE_TYPE).call();
             log.info("PUSHED into " + gitData.getFolderName() + " project");
         } catch (GitAPIException e) {
