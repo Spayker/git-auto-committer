@@ -12,11 +12,16 @@ import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static com.spayker.ac.model.git.CHANGE.*;
-import static com.spayker.ac.model.git.CHANGE.REMOVED;
 
 @Slf4j
 public class ChangeProcessor implements Runnable {
