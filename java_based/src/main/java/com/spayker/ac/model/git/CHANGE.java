@@ -6,7 +6,6 @@ public enum CHANGE {
     CHANGED("changed"),
     CONFLICTING("conflicting"),
     CONFLICTING_STAGE_STATE("conflicting stage state"),
-    IGNORED_NOT_IN_INDEX("ignored not in index"),
     MISSING("missing"),
     MODIFIED("modified"),
     REMOVED("removed");
