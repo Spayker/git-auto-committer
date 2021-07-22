@@ -1,5 +1,7 @@
 package com.spayker.ac;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.spayker.ac.task.ChangeProcessor;
 import lombok.extern.slf4j.Slf4j;
 import java.util.concurrent.Executors;
@@ -20,6 +22,10 @@ public class Main {
 
     public static void main(String[] args) {
         String path, token;
+
+        // check yaml config
+        ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
+        mapper.findAndRegisterModules();
 
         if (args.length == 2) {
             path = args[0];
