@@ -2,57 +2,89 @@ package com.spayker.ac;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import com.spayker.ac.model.git.AppConfig;
+import com.spayker.ac.model.AppConfig;
 import com.spayker.ac.task.ChangeProcessor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Optional;
+import java.nio.file.InvalidPathException;
+import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Slf4j
 public class Main {
 
-    private static final String CURRENT_APP_RUNNING_DIR = System.getProperty("user.dir");
-    private static final String APP_YAML_CONFIG_PATH = CURRENT_APP_RUNNING_DIR + "/jgac.yml";
+    private static final String APP_CURRENT_DIR = System.getProperty("user.dir");
+    private static final String APP_YAML_CONFIG_PATH = "/jgac.yml";
+    private static final String APP_GIT_TOKEN_PREFIX = "ghp_";
 
     private static final int POOL_SIZE = 1;
-    private static final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(POOL_SIZE);
+    private static final int DEFAULT_INITIAL_DELAY_MIN = 1;
+    private static final int DEFAULT_PERIOD_MIN = 15;
 
-    private static int initialDelay = 1;
-    private static int period = 15;
+    private static final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(POOL_SIZE);
     private static final TimeUnit UNIT = TimeUnit.MINUTES;
 
     public static void main(String[] args) {
-        String path = CURRENT_APP_RUNNING_DIR;
-        String token;
+        int initialDelay, period;
+
+        List<String> arguments = Arrays.stream(args).collect(Collectors.toList());
+        // get path
+        final String path = getPath(arguments);
+        log.info("Working Directory = " + path);
+
+        // get token
+        String token = getToken(arguments);
 
         try {
             // check yaml config
             ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
             mapper.findAndRegisterModules();
-            AppConfig appConfig = mapper.readValue(new File(APP_YAML_CONFIG_PATH), AppConfig.class);
+            AppConfig appConfig = mapper.readValue(new File(path + APP_YAML_CONFIG_PATH), AppConfig.class);
 
-            token = appConfig.getToken();
-            initialDelay = Optional.ofNullable(appConfig.getInitialDelay()).orElse(1);
-            period = Optional.ofNullable(appConfig.getRunPeriod()).orElse(15);
+            if(token == null) {
+                token = appConfig.getToken();
+            }
+            initialDelay = appConfig.getInitialDelay();
+            period = appConfig.getRunPeriod();
         } catch (IOException e) {
             log.error(e.getMessage());
-            if (args.length == 2) {
-                path = args[0];
-                token = args[1];
-            } else {
-                path = CURRENT_APP_RUNNING_DIR;
-                token = args[0];
+            log.info("Setting up default values for initial delay: " + DEFAULT_INITIAL_DELAY_MIN + " minutes");
+            initialDelay = DEFAULT_INITIAL_DELAY_MIN;
+            log.info("Setting up default values for schedule period: " + DEFAULT_PERIOD_MIN + " minutes");
+            period = DEFAULT_PERIOD_MIN;
+            if(token == null) {
+                log.info("token was not found in config file, can't proceed next");
+                return;
             }
         }
-
-        // get folder projects
-        log.info("Working Directory = " + path);
         scheduler.scheduleAtFixedRate(new ChangeProcessor(path, token), initialDelay, period, UNIT);
+    }
+
+    private static String getToken(final List<String> args) {
+        for (String arg : args) {
+           if (arg.toLowerCase().contains(APP_GIT_TOKEN_PREFIX)){
+               return arg;
+           }
+        }
+        return null;
+    }
+
+    private static String getPath(final List<String> args) {
+        for (String arg : args) {
+            try {
+                return Paths.get(arg).toString();
+            } catch (InvalidPathException | NullPointerException ex) {
+                log.debug("Provided argument is not a path: " + arg);
+            }
+        }
+        return APP_CURRENT_DIR;
     }
 
 }
