@@ -79,13 +79,15 @@ public class ChangeProcessor implements Runnable {
         String email = config.get(UserConfig.KEY).getAuthorEmail();
         CredentialsProvider cp = new UsernamePasswordCredentialsProvider(email, accessToken);
         try {
+            StringBuilder commitMessage = new StringBuilder();
             for (String changeType : changes.keySet()) {
                 String fileName = changes.get(changeType);
                 git.add().addFilepattern(fileName).call();
-                git.commit().setAuthor(author, email).setMessage(changeType + " " + fileName).call();
+                commitMessage.append(changeType).append(" ").append(fileName).append(System.lineSeparator());
                 log.info("COMMITTED into " + gitData.getFolderName() + " project");
             }
 
+            git.commit().setAuthor(author, email).setMessage(commitMessage.toString()).call();
             git.push().setCredentialsProvider(cp).setRemote(GIT_REMOTE_TYPE).call();
             log.info("PUSHED into " + gitData.getFolderName() + " project, changes: "  + changes.size());
         } catch (GitAPIException e) {
