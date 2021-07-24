@@ -26,12 +26,11 @@ import static com.spayker.ac.model.git.CHANGE.*;
 @Slf4j
 public class ChangeProcessor implements Runnable {
 
-
     private static final String GIT_REMOTE_TYPE = "origin";
+    private static final String GIT_FOLDER_NAME = ".git";
 
     private String projectsPath;
     private String accessToken;
-    private final String GIT_FOLDER_NAME = ".git";
 
     private ChangeProcessor() { }
 
