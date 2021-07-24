@@ -13,6 +13,7 @@ import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -87,12 +88,13 @@ public class ChangeProcessor implements Runnable {
             StringBuilder commitMessage = new StringBuilder();
             for (String changeType : changes.keySet()) {
                 List<String> fileNames = changes.get(changeType);
-                fileNames.forEach(f -> {
-                    executeGitCommand(git.add().addFilepattern(f));
-                    commitMessage.append(changeType).append(" ").append(f).append(System.lineSeparator());
-                });
+                fileNames.forEach(f -> commitMessage
+                        .append(changeType)
+                        .append(" ")
+                        .append(Paths.get(f).getFileName())
+                        .append(System.lineSeparator()));
             }
-            log.info("Project " + gitData.getFolderName() + " gets next changes:");
+            log.info("Found changes at [" + gitData.getFolderName() + "] project");
             log.info("Next changes have been committed: " + System.lineSeparator() + commitMessage);
             executeGitCommand(git.commit().setAuthor(author, email).setMessage(commitMessage.toString()));
             executeGitCommand(git.push().setCredentialsProvider(cp).setRemote(GIT_REMOTE_TYPE));
