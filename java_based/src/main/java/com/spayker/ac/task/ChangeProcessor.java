@@ -88,11 +88,13 @@ public class ChangeProcessor implements Runnable {
             StringBuilder commitMessage = new StringBuilder();
             for (String changeType : changes.keySet()) {
                 List<String> fileNames = changes.get(changeType);
-                fileNames.forEach(f -> commitMessage
-                        .append(changeType)
+                fileNames.forEach(f -> {
+                    commitMessage.append(changeType)
                         .append(" ")
                         .append(Paths.get(f).getFileName())
-                        .append(System.lineSeparator()));
+                        .append(System.lineSeparator());
+                    executeGitCommand(git.add().addFilepattern(f));
+                });
             }
             log.info("Found changes at [" + gitData.getFolderName() + "] project");
             log.info("Next changes have been committed: " + System.lineSeparator() + commitMessage);
@@ -121,8 +123,6 @@ public class ChangeProcessor implements Runnable {
 
                 if(hasNoChange){
                     log.info("Project has no changes in: " + folder);
-                    GitData gitData = new GitData(git, folder.getName());
-                    projectDifferences.put(gitData, Collections.emptyMap());
                 } else {
                     Map<String, List<String>> changes = getChanges(status);
                     GitData gitData = new GitData(git, folder.getName());
@@ -137,18 +137,41 @@ public class ChangeProcessor implements Runnable {
 
     private Map<String, List<String>> getChanges(Status status){
         Map<String, List<String>> changes = new HashMap<>();
-        changes.put(ADDED.getValue(), new ArrayList<>(status.getAdded()));
-        changes.put(CHANGED.getValue(), new ArrayList<>(status.getChanged()));
-        changes.put(MISSING.getValue(), new ArrayList<>(status.getMissing()));
-        changes.put(MODIFIED.getValue(), new ArrayList<>(status.getModified()));
-        changes.put(REMOVED.getValue(), new ArrayList<>(status.getRemoved()));
-        changes.put(UNTRACKED.getValue(), new ArrayList<>(status.getUntracked()));
+        ArrayList<String> added = new ArrayList<>(status.getAdded());
+        if(added.size() > 0) {
+            changes.put(ADDED.getValue(), added);
+        }
+
+        ArrayList<String> changed = new ArrayList<>(status.getChanged());
+        if(changed.size() > 0) {
+            changes.put(CHANGED.getValue(), changed);
+        }
+
+        ArrayList<String> missed = new ArrayList<>(status.getMissing());
+        if(missed.size() > 0) {
+            changes.put(MISSING.getValue(), missed);
+        }
+
+        ArrayList<String> modified = new ArrayList<>(status.getModified());
+        if(modified.size() > 0) {
+            changes.put(MODIFIED.getValue(), modified);
+        }
+
+        ArrayList<String> removed = new ArrayList<>(status.getRemoved());
+        if(removed.size() > 0) {
+            changes.put(REMOVED.getValue(), removed);
+        }
+
+        ArrayList<String> untracked = new ArrayList<>(status.getUntracked());
+        if(untracked.size() > 0) {
+            changes.put(UNTRACKED.getValue(), untracked);
+        }
+
         return changes;
     }
 
     private boolean hasChanges(Status status) {
-        return status.getAdded().isEmpty() && status.getChanged().isEmpty() && status.getConflicting().isEmpty()
-                && status.getConflictingStageState().isEmpty() && status.getIgnoredNotInIndex().isEmpty()
+        return status.getAdded().isEmpty() && status.getChanged().isEmpty() && status.getUntracked().isEmpty()
                 && status.getMissing().isEmpty() && status.getModified().isEmpty() && status.getRemoved().isEmpty();
     }
 }
