@@ -123,8 +123,6 @@ public class ChangeProcessor implements Runnable {
                     projectDifferences.put(gitData, Collections.emptyMap());
                 } else {
                     Map<String, List<String>> changes = getChanges(status);
-                    changes.forEach((name, path) -> log.info(name.toUpperCase() + ": " + path));
-
                     GitData gitData = new GitData(git, folder.getName());
                     projectDifferences.put(gitData, changes);
                 }
