@@ -79,18 +79,19 @@ public class ChangeProcessor implements Runnable {
         String email = config.get(UserConfig.KEY).getAuthorEmail();
         CredentialsProvider cp = new UsernamePasswordCredentialsProvider(email, accessToken);
         try {
-            StringBuilder commitMessage = new StringBuilder();
-            for (String changeType : changes.keySet()) {
-                String fileName = changes.get(changeType);
-                git.add().addFilepattern(fileName).call();
-                commitMessage.append(changeType).append(" ").append(fileName).append(System.lineSeparator());
+            if (changes.keySet().size() > 0) {
+                StringBuilder commitMessage = new StringBuilder();
+                for (String changeType : changes.keySet()) {
+                    String fileName = changes.get(changeType);
+                    git.add().addFilepattern(fileName).call();
+                    commitMessage.append(changeType).append(" ").append(fileName).append(System.lineSeparator());
+                }
+                log.info("Project " + gitData.getFolderName() + " gets next changes:");
+                log.info(commitMessage.toString());
+                git.commit().setAuthor(author, email).setMessage(commitMessage.toString()).call();
+                git.push().setCredentialsProvider(cp).setRemote(GIT_REMOTE_TYPE).call();
+                log.info("PUSHED into " + gitData.getFolderName() + " project, changes: "  + changes.size());
             }
-
-            log.info("Project " + gitData.getFolderName() + " gets next changes:");
-            log.info(commitMessage.toString());
-            git.commit().setAuthor(author, email).setMessage(commitMessage.toString()).call();
-            git.push().setCredentialsProvider(cp).setRemote(GIT_REMOTE_TYPE).call();
-            log.info("PUSHED into " + gitData.getFolderName() + " project, changes: "  + changes.size());
         } catch (GitAPIException e) {
             log.error(e.getMessage());
         }
