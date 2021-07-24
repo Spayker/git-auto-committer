@@ -4,10 +4,9 @@ public enum CHANGE {
 
     ADDED("added"),
     CHANGED("changed"),
-    CONFLICTING("conflicting"),
-    CONFLICTING_STAGE_STATE("conflicting stage state"),
     MISSING("missing"),
     MODIFIED("modified"),
+    UNTRACKED("untracked"),
     REMOVED("removed");
 
     private final String value;

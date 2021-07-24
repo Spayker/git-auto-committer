@@ -25,7 +25,7 @@ public class Main {
     private static final String APP_GIT_TOKEN_PREFIX = "ghp_";
 
     private static final int POOL_SIZE = 1;
-    private static final int DEFAULT_INITIAL_DELAY_MIN = 1;
+    private static final int DEFAULT_INITIAL_DELAY_MIN = 0;
     private static final int DEFAULT_PERIOD_MIN = 15;
 
     private static final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(POOL_SIZE);
@@ -54,7 +54,7 @@ public class Main {
             initialDelay = appConfig.getInitialDelay();
             period = appConfig.getRunPeriod();
         } catch (IOException e) {
-            log.error(e.getMessage());
+            log.warn(e.getMessage());
             log.info("Setting up default values for initial delay: " + DEFAULT_INITIAL_DELAY_MIN + " minutes");
             initialDelay = DEFAULT_INITIAL_DELAY_MIN;
             log.info("Setting up default values for schedule period: " + DEFAULT_PERIOD_MIN + " minutes");

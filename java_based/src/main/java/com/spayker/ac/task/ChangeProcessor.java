@@ -3,6 +3,7 @@ package com.spayker.ac.task;
 import com.spayker.ac.model.git.GitData;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.GitCommand;
 import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.StoredConfig;
@@ -47,7 +48,7 @@ public class ChangeProcessor implements Runnable {
         List<File> filteredGitFolders = subFolders.stream()
                 .filter(f -> containGitFolder(f.getPath()))
                 .collect(Collectors.toList());
-        Map<GitData, Map<String, String>> projectDifferences = collectProjectFolders(filteredGitFolders);
+        Map<GitData, Map<String, List<String>>> projectDifferences = collectProjectFolders(filteredGitFolders);
         projectDifferences.forEach(this::processFoundChanges);
     }
 
@@ -71,33 +72,44 @@ public class ChangeProcessor implements Runnable {
                 .anyMatch(f -> f.getName().equalsIgnoreCase(GIT_FOLDER_NAME));
     }
 
-    private void processFoundChanges(GitData gitData, Map<String, String> changes) {
+    private void processFoundChanges(GitData gitData, Map<String, List<String>> changes) {
         Git git = gitData.getGit();
         StoredConfig config = git.getRepository().getConfig();
         String author = config.get(UserConfig.KEY).getAuthorName();
         String email = config.get(UserConfig.KEY).getAuthorEmail();
         CredentialsProvider cp = new UsernamePasswordCredentialsProvider(email, accessToken);
-        try {
-            if (changes.keySet().size() > 0) {
-                StringBuilder commitMessage = new StringBuilder();
-                for (String changeType : changes.keySet()) {
-                    String fileName = changes.get(changeType);
-                    git.add().addFilepattern(fileName).call();
-                    commitMessage.append(changeType).append(" ").append(fileName).append(System.lineSeparator());
-                }
-                log.info("Project " + gitData.getFolderName() + " gets next changes:");
-                log.info(commitMessage.toString());
-                git.commit().setAuthor(author, email).setMessage(commitMessage.toString()).call();
-                git.push().setCredentialsProvider(cp).setRemote(GIT_REMOTE_TYPE).call();
-                log.info("PUSHED into " + gitData.getFolderName() + " project, changes: "  + changes.size());
+        int changesAmount = 0;
+        for (List<String> listChange : changes.values()) {
+            changesAmount = changesAmount + listChange.size();
+        }
+
+        if (changesAmount > 0) {
+            StringBuilder commitMessage = new StringBuilder();
+            for (String changeType : changes.keySet()) {
+                List<String> fileNames = changes.get(changeType);
+                fileNames.forEach(f -> {
+                    executeGitCommand(git.add().addFilepattern(f));
+                    commitMessage.append(changeType).append(" ").append(f).append(System.lineSeparator());
+                });
             }
+            log.info("Project " + gitData.getFolderName() + " gets next changes:");
+            log.info("Next changes have been committed: " + System.lineSeparator() + commitMessage);
+            executeGitCommand(git.commit().setAuthor(author, email).setMessage(commitMessage.toString()));
+            executeGitCommand(git.push().setCredentialsProvider(cp).setRemote(GIT_REMOTE_TYPE));
+            log.info("Pushed into " + gitData.getFolderName() + " project, changes: "  + changesAmount);
+        }
+    }
+
+    private void executeGitCommand(final GitCommand<?> commitCommand){
+        try {
+            commitCommand.call();
         } catch (GitAPIException e) {
             log.error(e.getMessage());
         }
     }
 
-    private Map<GitData, Map<String, String>> collectProjectFolders(List<File> projectFolders) {
-        Map<GitData, Map<String, String>> projectDifferences = new HashMap<>();
+    private Map<GitData, Map<String, List<String>>> collectProjectFolders(List<File> projectFolders) {
+        Map<GitData, Map<String, List<String>>> projectDifferences = new HashMap<>();
 
         projectFolders.forEach(folder -> {
             try {
@@ -110,7 +122,7 @@ public class ChangeProcessor implements Runnable {
                     GitData gitData = new GitData(git, folder.getName());
                     projectDifferences.put(gitData, Collections.emptyMap());
                 } else {
-                    Map<String, String> changes = getChanges(status);
+                    Map<String, List<String>> changes = getChanges(status);
                     changes.forEach((name, path) -> log.info(name.toUpperCase() + ": " + path));
 
                     GitData gitData = new GitData(git, folder.getName());
@@ -123,17 +135,14 @@ public class ChangeProcessor implements Runnable {
         return projectDifferences;
     }
 
-    private Map<String, String> getChanges(Status status){
-        Map<String, String> changes = new HashMap<>();
-        status.getAdded().forEach(a -> changes.put(ADDED.getValue(), a));
-        status.getChanged().forEach(a -> changes.put(CHANGED.getValue(), a));
-        status.getConflicting().forEach(a -> changes.put(CONFLICTING.getValue(), a));
-        status.getConflictingStageState().forEach((path, stageState) -> changes.put(CONFLICTING_STAGE_STATE.getValue(), path));
-        status.getMissing().forEach(a -> changes.put(MISSING.getValue(), a));
-        status.getModified().forEach(a -> changes.put(MODIFIED.getValue(), a));
-        status.getRemoved().forEach(a -> changes.put(REMOVED.getValue(), a));
-        status.getUntracked().forEach(a -> changes.put(UNTRACKED.getValue(), a));
-        status.getUntrackedFolders().forEach(a -> changes.put(UNTRACKED_FOLDER.getValue(), a));
+    private Map<String, List<String>> getChanges(Status status){
+        Map<String, List<String>> changes = new HashMap<>();
+        changes.put(ADDED.getValue(), new ArrayList<>(status.getAdded()));
+        changes.put(CHANGED.getValue(), new ArrayList<>(status.getChanged()));
+        changes.put(MISSING.getValue(), new ArrayList<>(status.getMissing()));
+        changes.put(MODIFIED.getValue(), new ArrayList<>(status.getModified()));
+        changes.put(REMOVED.getValue(), new ArrayList<>(status.getRemoved()));
+        changes.put(UNTRACKED.getValue(), new ArrayList<>(status.getUntracked()));
         return changes;
     }
 

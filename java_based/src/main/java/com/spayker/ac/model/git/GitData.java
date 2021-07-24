@@ -1,24 +1,17 @@
 package com.spayker.ac.model.git;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.eclipse.jgit.api.Git;
 
+@AllArgsConstructor
 public class GitData {
 
+    @Getter
     private Git git;
+
+    @Getter
     private String folderName;
 
     private GitData() { }
-
-    public GitData(Git git, String folderName) {
-        this.git = git;
-        this.folderName = folderName;
-    }
-
-    public Git getGit() {
-        return git;
-    }
-
-    public String getFolderName() {
-        return folderName;
-    }
 }
