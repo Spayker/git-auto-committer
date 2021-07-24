@@ -133,6 +133,7 @@ public class ChangeProcessor implements Runnable {
         status.getModified().forEach(a -> changes.put(MODIFIED.getValue(), a));
         status.getRemoved().forEach(a -> changes.put(REMOVED.getValue(), a));
         status.getUntracked().forEach(a -> changes.put(UNTRACKED.getValue(), a));
+        status.getUntrackedFolders().forEach(a -> changes.put(UNTRACKED_FOLDER.getValue(), a));
         return changes;
     }
 
