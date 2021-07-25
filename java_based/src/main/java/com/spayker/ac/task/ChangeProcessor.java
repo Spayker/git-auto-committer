@@ -93,7 +93,6 @@ public class ChangeProcessor implements Runnable {
                         .append(" ")
                         .append(Paths.get(f).getFileName())
                         .append(System.lineSeparator());
-                    System.out.println();
                     executeGitCommand(git.add().addFilepattern(f));
                 });
             }
