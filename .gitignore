@@ -27,3 +27,6 @@ java_based/.idea
 java_based/*.iml
 java_based/target
 
+.idea
+*.iml
+target
