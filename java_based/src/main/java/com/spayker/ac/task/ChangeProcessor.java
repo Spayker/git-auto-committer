@@ -94,13 +94,13 @@ public class ChangeProcessor implements Runnable {
                         .append(Paths.get(f).getFileName())
                         .append(System.lineSeparator());
                     System.out.println();
-                    //executeGitCommand(git.add().addFilepattern(f));
+                    executeGitCommand(git.add().addFilepattern(f));
                 });
             }
             log.info("Found changes at [" + gitData.getFolderName() + "] project");
             log.info("Next changes have been committed: " + System.lineSeparator() + commitMessage);
-            //executeGitCommand(git.commit().setAuthor(author, email).setMessage(commitMessage.toString()));
-            //executeGitCommand(git.push().setCredentialsProvider(cp).setRemote(GIT_REMOTE_TYPE));
+            executeGitCommand(git.commit().setAuthor(author, email).setMessage(commitMessage.toString()));
+            executeGitCommand(git.push().setCredentialsProvider(cp).setRemote(GIT_REMOTE_TYPE));
             log.info("Pushed into " + gitData.getFolderName() + " project, changes: "  + changesAmount);
         }
     }
