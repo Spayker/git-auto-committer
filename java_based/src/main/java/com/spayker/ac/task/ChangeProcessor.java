@@ -16,7 +16,6 @@ import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -99,9 +98,9 @@ public class ChangeProcessor implements Runnable {
             log.info("Found changes at [" + gitData.getFolderName() + "] project");
             log.info("Next changes have been committed: " + System.lineSeparator() + commitMessage);
             executeGitCommand(git.commit().setAuthor(author, email).setMessage(commitMessage.toString()));
-            executeGitCommand(git.push().setCredentialsProvider(cp).setRemote(GIT_REMOTE_TYPE));
-            log.info("Pushed into " + gitData.getFolderName() + " project, changes: "  + changesAmount);
         }
+        executeGitCommand(git.push().setCredentialsProvider(cp).setRemote(GIT_REMOTE_TYPE));
+        log.info("Pushed into " + gitData.getFolderName() + " project, changes: "  + changesAmount);
     }
 
     private void executeGitCommand(final GitCommand<?> commitCommand){
