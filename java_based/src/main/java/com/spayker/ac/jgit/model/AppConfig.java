@@ -1,4 +1,4 @@
-package com.spayker.ac.model;
+package com.spayker.ac.jgit.model;
 
 import lombok.Getter;
 

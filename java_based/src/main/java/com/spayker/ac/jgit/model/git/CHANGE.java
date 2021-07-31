@@ -1,4 +1,4 @@
-package com.spayker.ac.model.git;
+package com.spayker.ac.jgit.model.git;
 
 public enum CHANGE {
 

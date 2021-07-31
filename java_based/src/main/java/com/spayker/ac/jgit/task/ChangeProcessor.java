@@ -1,6 +1,6 @@
-package com.spayker.ac.task;
+package com.spayker.ac.jgit.task;
 
-import com.spayker.ac.model.git.GitData;
+import com.spayker.ac.jgit.model.git.GitData;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.GitCommand;
@@ -22,7 +22,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import static com.spayker.ac.model.git.CHANGE.*;
+import static com.spayker.ac.jgit.model.git.CHANGE.*;
 
 @Slf4j
 public class ChangeProcessor implements Runnable {

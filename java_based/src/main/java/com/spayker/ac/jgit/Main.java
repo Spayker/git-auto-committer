@@ -1,9 +1,9 @@
-package com.spayker.ac;
+package com.spayker.ac.jgit;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import com.spayker.ac.model.AppConfig;
-import com.spayker.ac.task.ChangeProcessor;
+import com.spayker.ac.jgit.model.AppConfig;
+import com.spayker.ac.jgit.task.ChangeProcessor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
@@ -78,11 +78,17 @@ public class Main {
 
     private static String getPath(final List<String> args) {
         for (String arg : args) {
-            try {
-                return Paths.get(arg).toString();
-            } catch (InvalidPathException | NullPointerException ex) {
-                log.debug("Provided argument is not a path: " + arg);
+            File file = new File(arg);
+            if (!file.isDirectory()) {
+                file = file.getParentFile();
             }
+
+            if (file.exists()){
+
+            }
+
+            return Paths.get(arg).toString();
+
         }
         return APP_CURRENT_DIR;
     }

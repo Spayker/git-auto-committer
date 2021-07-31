@@ -48,7 +48,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>com.spayker.ac.Main</mainClass>
+                            <mainClass>com.spayker.ac.jgit.Main</mainClass>
                         </manifest>
                     </archive>
                     <descriptorRefs>
