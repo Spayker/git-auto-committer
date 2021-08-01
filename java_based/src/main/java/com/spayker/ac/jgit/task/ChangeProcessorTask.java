@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 import static com.spayker.ac.jgit.model.git.CHANGE.*;
 
 @Slf4j
-public class ChangeProcessor implements Runnable {
+public class ChangeProcessorTask implements Runnable {
 
     private static final String GIT_REMOTE_TYPE = "origin";
     private static final String GIT_FOLDER_NAME = ".git";
@@ -33,9 +33,9 @@ public class ChangeProcessor implements Runnable {
     private String projectsPath;
     private String accessToken;
 
-    private ChangeProcessor() { }
+    private ChangeProcessorTask() { }
 
-    public ChangeProcessor(String projectsPath, String accessToken) {
+    public ChangeProcessorTask(String projectsPath, String accessToken) {
         this.projectsPath = projectsPath;
         this.accessToken = accessToken;
     }

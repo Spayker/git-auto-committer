@@ -2,8 +2,8 @@ package com.spayker.ac.jgit;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import com.spayker.ac.jgit.model.AppConfig;
-import com.spayker.ac.jgit.task.ChangeProcessor;
+import com.spayker.ac.jgit.model.ApplicationConfig;
+import com.spayker.ac.jgit.task.ChangeProcessorTask;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
@@ -46,7 +46,7 @@ public class Main {
             // check yaml config
             ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
             mapper.findAndRegisterModules();
-            AppConfig appConfig = mapper.readValue(new File(path + APP_YAML_CONFIG_PATH), AppConfig.class);
+            ApplicationConfig appConfig = mapper.readValue(new File(path + APP_YAML_CONFIG_PATH), ApplicationConfig.class);
 
             if(token == null) {
                 token = appConfig.getToken();
@@ -64,7 +64,7 @@ public class Main {
                 return;
             }
         }
-        scheduler.scheduleAtFixedRate(new ChangeProcessor(path, token), initialDelay, period, UNIT);
+        scheduler.scheduleAtFixedRate(new ChangeProcessorTask(path, token), initialDelay, period, UNIT);
     }
 
     private static String getToken(final List<String> args) {
