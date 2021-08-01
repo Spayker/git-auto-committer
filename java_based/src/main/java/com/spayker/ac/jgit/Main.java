@@ -8,8 +8,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.InvalidPathException;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -78,17 +76,13 @@ public class Main {
 
     private static String getPath(final List<String> args) {
         for (String arg : args) {
+
             File file = new File(arg);
-            if (!file.isDirectory()) {
-                file = file.getParentFile();
+            if (file.isDirectory()) {
+                return arg;
+            } else {
+                return APP_CURRENT_DIR;
             }
-
-            if (file.exists()){
-
-            }
-
-            return Paths.get(arg).toString();
-
         }
         return APP_CURRENT_DIR;
     }
