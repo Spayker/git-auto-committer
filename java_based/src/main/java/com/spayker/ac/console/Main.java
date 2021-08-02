@@ -1,4 +1,4 @@
-package com.spayker.ac.jgit;
+package com.spayker.ac.console;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
@@ -67,9 +67,9 @@ public class Main {
 
     private static String getToken(final List<String> args) {
         for (String arg : args) {
-           if (arg.toLowerCase().contains(APP_GIT_TOKEN_PREFIX)) {
-               return arg;
-           }
+            if (arg.toLowerCase().contains(APP_GIT_TOKEN_PREFIX)) {
+                return arg;
+            }
         }
         return null;
     }
