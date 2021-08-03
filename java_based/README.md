@@ -25,7 +25,7 @@ it can't commit them before pushing.
 
 ## Next steps
 Since auto committer is going to become one of few main components for next, more global project, all found issues
-have to be solved. Besides, PR creation feature could become really useful in questions of fast 
+have to be solved.
 
 ## Links
 Git token generation: https://docs.github.com/en/github/authenticating-to-github/keeping-your-account-and-data-secure/creating-a-personal-access-token
