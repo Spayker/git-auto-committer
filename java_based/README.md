@@ -28,6 +28,6 @@ Since auto committer is going to become one of few main components for next, mor
 have to be solved.
 
 ## Links
-Git token generation: https://docs.github.com/en/github/authenticating-to-github/keeping-your-account-and-data-secure/creating-a-personal-access-token
-Jgit off.: https://www.eclipse.org/jgit/
-jackson-dataformat-yaml off.: https://github.com/FasterXML/jackson-dataformat-yaml
+Git token generation: https://docs.github.com/en/github/authenticating-to-github/keeping-your-account-and-data-secure/creating-a-personal-access-token </br>
+Jgit off.: https://www.eclipse.org/jgit/ </br>
+jackson-dataformat-yaml off.: https://github.com/FasterXML/jackson-dataformat-yaml </br>
