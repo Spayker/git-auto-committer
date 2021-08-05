@@ -18,6 +18,9 @@ Has flexible options to be run:
 1) yml config file - file can be left in same folder where app's jar is located. Example can be taken from resources folder </br>
 2) with set of input parameters: git token, project folders 
 
+Typical run command:
+java -jar "jgac.yml" ~/projects ghp_qbBFsR2iGbAWHe3redHyExz9dwpMp21qvgy
+
 ## Found issues
 During first implementation stage jgit library was used to link app with git side. The library works fine in general,
 but it has issues with committing of missed files/folders. Application can detect missed or removed resources, but
