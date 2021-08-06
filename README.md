@@ -21,6 +21,9 @@ Has flexible options to be run:
 Typical run command:
 java -jar "jgac.yml" ~/projects ghp_qbBFsR2iGbAWHe3redHyExz9dwpMp21qvgy
 
+## Logging
+Logs can be found in same folder where running jar is located. Configuration of logs is done through log4j.properties file stored in resources.
+
 ## Found issues
 During first implementation stage jgit library was used to link app with git side. The library works fine in general,
 but it has issues with committing of missed files/folders. Application can detect missed or removed resources, but
