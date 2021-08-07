@@ -3,21 +3,23 @@ package com.spayker.ac.console.task;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.function.Consumer;
 
 public class StreamGobbler implements Runnable {
 
     private InputStream inputStream;
-    private Consumer<String> consumer;
+    private StringBuilder output;
 
-    public StreamGobbler(InputStream inputStream, Consumer<String> consumer) {
+    public StreamGobbler(InputStream inputStream) {
         this.inputStream = inputStream;
-        this.consumer = consumer;
     }
 
     @Override
     public void run() {
         new BufferedReader(new InputStreamReader(inputStream)).lines()
-                .forEach(consumer);
+                .forEach(l -> output.append(l));
+    }
+
+    public String getOutput() {
+        return output.toString();
     }
 }

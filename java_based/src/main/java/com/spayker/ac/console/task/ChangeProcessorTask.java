@@ -11,8 +11,10 @@ import org.eclipse.jgit.lib.UserConfig;
 import org.eclipse.jgit.transport.CredentialsProvider;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -184,20 +186,26 @@ public class ChangeProcessorTask implements Runnable {
 
     private void processGitCommand(File folder){
         boolean isWindows = System.getProperty("os.name").toLowerCase().startsWith("windows");
-        ProcessBuilder builder = new ProcessBuilder();
+        ProcessBuilder processBuilder = new ProcessBuilder();
         if (isWindows) {
-            builder.command("cmd.exe", "/c", "dir");
+            processBuilder.command("c:\\Program Files\\Git\\cmd\\git.exe", "status");
+            processBuilder.command("c:\\Program Files\\Git\\cmd\\git.exe", "commit");
+            processBuilder.command("c:\\Program Files\\Git\\cmd\\git.exe", "push");
         } else {
-            builder.command("sh", "-c", "ls");
+            processBuilder.command("sh", "-c", "git status");
         }
-        builder.directory(folder);
-        Process process;
+        processBuilder.directory(folder);
         try {
-            process = builder.start();
-            StreamGobbler streamGobbler = new StreamGobbler(process.getInputStream(), System.out::println);
-            Executors.newSingleThreadExecutor().submit(streamGobbler);
+            Process process = processBuilder.start();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+
+            String line;
+            while ((line = reader.readLine()) != null) {
+                System.out.println(line);
+            }
+
             int exitCode = process.waitFor();
-            assert exitCode == 0;
+            System.out.println("Exited with error code : " + exitCode);
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
