@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 import static com.spayker.ac.jgit.model.git.CHANGE.ADDED;
@@ -54,7 +55,8 @@ public class ChangeProcessorTask implements Runnable {
                 .filter(f -> containGitFolder(f.getPath()))
                 .collect(Collectors.toList());
         Map<GitData, Map<String, List<String>>> projectDifferences = collectProjectFolders(filteredGitFolders);
-        projectDifferences.forEach(this::processFoundChanges);
+
+        //projectDifferences.forEach(this::processFoundChanges);
     }
 
     private List<File> getSubDirs(File file) {
@@ -120,21 +122,22 @@ public class ChangeProcessorTask implements Runnable {
         Map<GitData, Map<String, List<String>>> projectDifferences = new HashMap<>();
 
         projectFolders.forEach(folder -> {
-            try {
-                Git git = Git.open( folder );
-                Status status = git.status().call();
-                boolean hasNoChange = hasChanges(status);
+            //try {
+                processGitCommand(folder);
+                //Git git = Git.open( folder ); ...
+                //Status status = git.status().call(); ...
+                //boolean hasNoChange = hasChanges(status);
 
-                if(hasNoChange){
-                    log.info("Project has no changes in: " + folder);
-                } else {
-                    Map<String, List<String>> changes = getChanges(status);
-                    GitData gitData = new GitData(git, folder.getName());
-                    projectDifferences.put(gitData, changes);
-                }
-            } catch (IOException | GitAPIException e) {
-                log.warn(e.getMessage());
-            }
+//                if(hasNoChange){
+//                    log.info("Project has no changes in: " + folder);
+//                } else {
+//                    Map<String, List<String>> changes = getChanges(status);
+//                    GitData gitData = new GitData(git, folder.getName());
+//                    projectDifferences.put(gitData, changes);
+//                }
+            //} catch (IOException | GitAPIException e) {
+            //    log.warn(e.getMessage());
+            //}
         });
         return projectDifferences;
     }
@@ -177,5 +180,27 @@ public class ChangeProcessorTask implements Runnable {
     private boolean hasChanges(Status status) {
         return status.getAdded().isEmpty() && status.getChanged().isEmpty() && status.getUntracked().isEmpty()
                 && status.getMissing().isEmpty() && status.getModified().isEmpty() && status.getRemoved().isEmpty();
+    }
+
+    private void processGitCommand(File folder){
+        boolean isWindows = System.getProperty("os.name").toLowerCase().startsWith("windows");
+        ProcessBuilder builder = new ProcessBuilder();
+        if (isWindows) {
+            builder.command("cmd.exe", "/c", "dir");
+        } else {
+            builder.command("sh", "-c", "ls");
+        }
+        builder.directory(folder);
+        Process process;
+        try {
+            process = builder.start();
+            StreamGobbler streamGobbler = new StreamGobbler(process.getInputStream(), System.out::println);
+            Executors.newSingleThreadExecutor().submit(streamGobbler);
+            int exitCode = process.waitFor();
+            assert exitCode == 0;
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+        }
+
     }
 }
