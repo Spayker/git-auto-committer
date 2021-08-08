@@ -2,8 +2,8 @@ package com.spayker.ac.console;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import com.spayker.ac.jgit.model.ApplicationConfig;
-import com.spayker.ac.jgit.task.ChangeProcessorTask;
+import com.spayker.ac.console.model.ApplicationConfig;
+import com.spayker.ac.console.task.ChangeProcessorTask;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;

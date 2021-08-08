@@ -11,8 +11,10 @@ import org.eclipse.jgit.lib.UserConfig;
 import org.eclipse.jgit.transport.CredentialsProvider;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -20,6 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 import static com.spayker.ac.jgit.model.git.CHANGE.ADDED;
@@ -54,7 +57,8 @@ public class ChangeProcessorTask implements Runnable {
                 .filter(f -> containGitFolder(f.getPath()))
                 .collect(Collectors.toList());
         Map<GitData, Map<String, List<String>>> projectDifferences = collectProjectFolders(filteredGitFolders);
-        projectDifferences.forEach(this::processFoundChanges);
+
+        //projectDifferences.forEach(this::processFoundChanges);
     }
 
     private List<File> getSubDirs(File file) {
@@ -120,21 +124,22 @@ public class ChangeProcessorTask implements Runnable {
         Map<GitData, Map<String, List<String>>> projectDifferences = new HashMap<>();
 
         projectFolders.forEach(folder -> {
-            try {
-                Git git = Git.open( folder );
-                Status status = git.status().call();
-                boolean hasNoChange = hasChanges(status);
+            //try {
+                processGitCommand(folder);
+                //Git git = Git.open( folder ); ...
+                //Status status = git.status().call(); ...
+                //boolean hasNoChange = hasChanges(status);
 
-                if(hasNoChange){
-                    log.info("Project has no changes in: " + folder);
-                } else {
-                    Map<String, List<String>> changes = getChanges(status);
-                    GitData gitData = new GitData(git, folder.getName());
-                    projectDifferences.put(gitData, changes);
-                }
-            } catch (IOException | GitAPIException e) {
-                log.warn(e.getMessage());
-            }
+//                if(hasNoChange){
+//                    log.info("Project has no changes in: " + folder);
+//                } else {
+//                    Map<String, List<String>> changes = getChanges(status);
+//                    GitData gitData = new GitData(git, folder.getName());
+//                    projectDifferences.put(gitData, changes);
+//                }
+            //} catch (IOException | GitAPIException e) {
+            //    log.warn(e.getMessage());
+            //}
         });
         return projectDifferences;
     }
@@ -177,5 +182,33 @@ public class ChangeProcessorTask implements Runnable {
     private boolean hasChanges(Status status) {
         return status.getAdded().isEmpty() && status.getChanged().isEmpty() && status.getUntracked().isEmpty()
                 && status.getMissing().isEmpty() && status.getModified().isEmpty() && status.getRemoved().isEmpty();
+    }
+
+    private void processGitCommand(File folder){
+        boolean isWindows = System.getProperty("os.name").toLowerCase().startsWith("windows");
+        ProcessBuilder processBuilder = new ProcessBuilder();
+        if (isWindows) {
+            processBuilder.command("c:\\Program Files\\Git\\cmd\\git.exe", "status");
+            processBuilder.command("c:\\Program Files\\Git\\cmd\\git.exe", "commit");
+            processBuilder.command("c:\\Program Files\\Git\\cmd\\git.exe", "push");
+        } else {
+            processBuilder.command("sh", "-c", "git status");
+        }
+        processBuilder.directory(folder);
+        try {
+            Process process = processBuilder.start();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+
+            String line;
+            while ((line = reader.readLine()) != null) {
+                System.out.println(line);
+            }
+
+            int exitCode = process.waitFor();
+            System.out.println("Exited with error code : " + exitCode);
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+        }
+
     }
 }
