@@ -2,41 +2,30 @@ package com.spayker.ac.console.task;
 
 import com.spayker.ac.jgit.model.git.GitData;
 import lombok.extern.slf4j.Slf4j;
-import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.GitCommand;
-import org.eclipse.jgit.api.Status;
-import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.lib.StoredConfig;
-import org.eclipse.jgit.lib.UserConfig;
-import org.eclipse.jgit.transport.CredentialsProvider;
-import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
-import static com.spayker.ac.jgit.model.git.CHANGE.ADDED;
-import static com.spayker.ac.jgit.model.git.CHANGE.CHANGED;
-import static com.spayker.ac.jgit.model.git.CHANGE.MISSING;
-import static com.spayker.ac.jgit.model.git.CHANGE.MODIFIED;
-import static com.spayker.ac.jgit.model.git.CHANGE.REMOVED;
-import static com.spayker.ac.jgit.model.git.CHANGE.UNTRACKED;
+import static com.spayker.ac.console.model.git.COMMAND.STATUS;
 
 @Slf4j
 public class ChangeProcessorTask implements Runnable {
 
     private static final String GIT_REMOTE_TYPE = "origin";
     private static final String GIT_FOLDER_NAME = ".git";
+
+    private static final String PROPERTY_OS_NAME = "os.name";
+    private static final String WINDOWS_OS = "windows";
+    private static final String GIT_APP_PATH = "C:\\Program Files\\Git\\cmd\\git.exe";
 
     private String projectsPath;
     private String accessToken;
@@ -58,7 +47,6 @@ public class ChangeProcessorTask implements Runnable {
                 .collect(Collectors.toList());
         Map<GitData, Map<String, List<String>>> projectDifferences = collectProjectFolders(filteredGitFolders);
 
-        //projectDifferences.forEach(this::processFoundChanges);
     }
 
     private List<File> getSubDirs(File file) {
@@ -81,116 +69,19 @@ public class ChangeProcessorTask implements Runnable {
                 .anyMatch(f -> f.getName().equalsIgnoreCase(GIT_FOLDER_NAME));
     }
 
-    private void processFoundChanges(GitData gitData, Map<String, List<String>> changes) {
-        Git git = gitData.getGit();
-        StoredConfig config = git.getRepository().getConfig();
-        String author = config.get(UserConfig.KEY).getAuthorName();
-        String email = config.get(UserConfig.KEY).getAuthorEmail();
-        CredentialsProvider cp = new UsernamePasswordCredentialsProvider(email, accessToken);
-        int changesAmount = 0;
-        for (List<String> listChange : changes.values()) {
-            changesAmount = changesAmount + listChange.size();
-        }
-
-        if (changesAmount > 0) {
-            StringBuilder commitMessage = new StringBuilder();
-            for (String changeType : changes.keySet()) {
-                List<String> fileNames = changes.get(changeType);
-                fileNames.forEach(f -> {
-                    commitMessage.append(changeType)
-                        .append(" ")
-                        .append(Paths.get(f).getFileName())
-                        .append(System.lineSeparator());
-                    executeGitCommand(git.add().addFilepattern(f));
-                });
-            }
-            log.info("Found changes at [" + gitData.getFolderName() + "] project");
-            log.info("Next changes have been committed: " + System.lineSeparator() + commitMessage);
-            executeGitCommand(git.commit().setAuthor(author, email).setMessage(commitMessage.toString()));
-        }
-        executeGitCommand(git.push().setCredentialsProvider(cp).setRemote(GIT_REMOTE_TYPE));
-        log.info("Pushed into " + gitData.getFolderName() + " project, changes: "  + changesAmount);
-    }
-
-    private void executeGitCommand(final GitCommand<?> commitCommand){
-        try {
-            commitCommand.call();
-        } catch (GitAPIException e) {
-            log.error(e.getMessage());
-        }
-    }
-
     private Map<GitData, Map<String, List<String>>> collectProjectFolders(List<File> projectFolders) {
         Map<GitData, Map<String, List<String>>> projectDifferences = new HashMap<>();
-
-        projectFolders.forEach(folder -> {
-            //try {
-                processGitCommand(folder);
-                //Git git = Git.open( folder ); ...
-                //Status status = git.status().call(); ...
-                //boolean hasNoChange = hasChanges(status);
-
-//                if(hasNoChange){
-//                    log.info("Project has no changes in: " + folder);
-//                } else {
-//                    Map<String, List<String>> changes = getChanges(status);
-//                    GitData gitData = new GitData(git, folder.getName());
-//                    projectDifferences.put(gitData, changes);
-//                }
-            //} catch (IOException | GitAPIException e) {
-            //    log.warn(e.getMessage());
-            //}
-        });
+        projectFolders.forEach(this::processGitCommand);
         return projectDifferences;
     }
 
-    private Map<String, List<String>> getChanges(Status status){
-        Map<String, List<String>> changes = new HashMap<>();
-        ArrayList<String> added = new ArrayList<>(status.getAdded());
-        if(added.size() > 0) {
-            changes.put(ADDED.getValue(), added);
-        }
-
-        ArrayList<String> changed = new ArrayList<>(status.getChanged());
-        if(changed.size() > 0) {
-            changes.put(CHANGED.getValue(), changed);
-        }
-
-        ArrayList<String> missed = new ArrayList<>(status.getMissing());
-        if(missed.size() > 0) {
-            changes.put(MISSING.getValue(), missed);
-        }
-
-        ArrayList<String> modified = new ArrayList<>(status.getModified());
-        if(modified.size() > 0) {
-            changes.put(MODIFIED.getValue(), modified);
-        }
-
-        ArrayList<String> removed = new ArrayList<>(status.getRemoved());
-        if(removed.size() > 0) {
-            changes.put(REMOVED.getValue(), removed);
-        }
-
-        ArrayList<String> untracked = new ArrayList<>(status.getUntracked());
-        if(untracked.size() > 0) {
-            changes.put(UNTRACKED.getValue(), untracked);
-        }
-
-        return changes;
-    }
-
-    private boolean hasChanges(Status status) {
-        return status.getAdded().isEmpty() && status.getChanged().isEmpty() && status.getUntracked().isEmpty()
-                && status.getMissing().isEmpty() && status.getModified().isEmpty() && status.getRemoved().isEmpty();
-    }
-
     private void processGitCommand(File folder){
-        boolean isWindows = System.getProperty("os.name").toLowerCase().startsWith("windows");
+
+        boolean isWindows = System.getProperty(PROPERTY_OS_NAME).toLowerCase().startsWith(WINDOWS_OS);
         ProcessBuilder processBuilder = new ProcessBuilder();
+
         if (isWindows) {
-            processBuilder.command("c:\\Program Files\\Git\\cmd\\git.exe", "status");
-            processBuilder.command("c:\\Program Files\\Git\\cmd\\git.exe", "commit");
-            processBuilder.command("c:\\Program Files\\Git\\cmd\\git.exe", "push");
+            processBuilder.command(GIT_APP_PATH, STATUS.getValue());
         } else {
             processBuilder.command("sh", "-c", "git status");
         }
@@ -199,15 +90,16 @@ public class ChangeProcessorTask implements Runnable {
             Process process = processBuilder.start();
             BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
 
+            //toDo: add status output parsing
             String line;
             while ((line = reader.readLine()) != null) {
                 System.out.println(line);
             }
 
             int exitCode = process.waitFor();
-            System.out.println("Exited with error code : " + exitCode);
+            log.info("Exited with error code : " + exitCode);
         } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
+            log.error(e.getMessage());
         }
 
     }
