@@ -7,7 +7,8 @@ public enum CHANGE {
     MISSING("missing"),
     MODIFIED("modified"),
     UNTRACKED("untracked"),
-    REMOVED("removed");
+    REMOVED("removed"),
+    AHEAD("ahead");
 
     private final String value;
 

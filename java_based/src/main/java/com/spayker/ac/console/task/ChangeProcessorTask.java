@@ -1,6 +1,6 @@
 package com.spayker.ac.console.task;
 
-import com.spayker.ac.jgit.model.git.GitData;
+import com.spayker.ac.console.model.git.CHANGE;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.BufferedReader;
@@ -22,9 +22,7 @@ public class ChangeProcessorTask implements Runnable {
 
     private static final String GIT_REMOTE_TYPE = "origin";
     private static final String GIT_FOLDER_NAME = ".git";
-
-    private static final String PROPERTY_OS_NAME = "os.name";
-    private static final String WINDOWS_OS = "windows";
+    // toDo: set git path read from config file
     private static final String GIT_APP_PATH = "C:\\Program Files\\Git\\cmd\\git.exe";
 
     private String projectsPath;
@@ -45,7 +43,16 @@ public class ChangeProcessorTask implements Runnable {
         List<File> filteredGitFolders = subFolders.stream()
                 .filter(f -> containGitFolder(f.getPath()))
                 .collect(Collectors.toList());
-        Map<GitData, Map<String, List<String>>> projectDifferences = collectProjectFolders(filteredGitFolders);
+
+        if (filteredGitFolders.isEmpty()){
+            log.warn("No git projects found by provided path: " + projectsPath);
+        } else {
+            Map<CHANGE, Map<String, List<String>>> projectDifferences = collectProjectFolders(filteredGitFolders);
+            processGitFolders(projectDifferences);
+        }
+    }
+
+    private void processGitFolders(Map<CHANGE, Map<String, List<String>>> projectDifferences) {
 
     }
 
@@ -69,38 +76,32 @@ public class ChangeProcessorTask implements Runnable {
                 .anyMatch(f -> f.getName().equalsIgnoreCase(GIT_FOLDER_NAME));
     }
 
-    private Map<GitData, Map<String, List<String>>> collectProjectFolders(List<File> projectFolders) {
-        Map<GitData, Map<String, List<String>>> projectDifferences = new HashMap<>();
-        projectFolders.forEach(this::processGitCommand);
+    private Map<CHANGE, Map<String, List<String>>> collectProjectFolders(List<File> projectFolders) {
+        Map<CHANGE, Map<String, List<String>>> projectDifferences = new HashMap<>();
+        projectFolders.forEach(folder -> processGitStatus(projectDifferences, folder));
         return projectDifferences;
     }
 
-    private void processGitCommand(File folder){
-
-        boolean isWindows = System.getProperty(PROPERTY_OS_NAME).toLowerCase().startsWith(WINDOWS_OS);
+    private void processGitStatus(Map<CHANGE, Map<String, List<String>>> projectDifferences, File folder) {
         ProcessBuilder processBuilder = new ProcessBuilder();
-
-        if (isWindows) {
-            processBuilder.command(GIT_APP_PATH, STATUS.getValue());
-        } else {
-            processBuilder.command("sh", "-c", "git status");
-        }
+        processBuilder.command(GIT_APP_PATH, STATUS.getValue());
         processBuilder.directory(folder);
+
         try {
             Process process = processBuilder.start();
             BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
 
-            //toDo: add status output parsing
-            String line;
-            while ((line = reader.readLine()) != null) {
-                System.out.println(line);
-            }
 
+            StringBuilder outputContent = new StringBuilder();
+            reader.lines().forEach(outputContent::append);
             int exitCode = process.waitFor();
-            log.info("Exited with error code : " + exitCode);
+            log.debug("Exited with error code: " + exitCode);
+
+
+
+
         } catch (IOException | InterruptedException e) {
             log.error(e.getMessage());
         }
-
     }
 }
