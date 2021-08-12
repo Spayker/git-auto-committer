@@ -1,6 +1,7 @@
 package com.spayker.ac.console.task;
 
 import com.spayker.ac.console.model.git.CHANGE;
+import com.spayker.ac.console.model.git.COMMAND;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.BufferedReader;
@@ -9,6 +10,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -47,13 +49,9 @@ public class ChangeProcessorTask implements Runnable {
         if (filteredGitFolders.isEmpty()){
             log.warn("No git projects found by provided path: " + projectsPath);
         } else {
-            Map<CHANGE, Map<String, List<String>>> projectDifferences = collectProjectFolders(filteredGitFolders);
-            processGitFolders(projectDifferences);
+            Map<String, List<String>> projectDifferences = collectProjectFolders(filteredGitFolders);
+            //processGitFolders(projectDifferences);
         }
-    }
-
-    private void processGitFolders(Map<CHANGE, Map<String, List<String>>> projectDifferences) {
-
     }
 
     private List<File> getSubDirs(File file) {
@@ -76,13 +74,13 @@ public class ChangeProcessorTask implements Runnable {
                 .anyMatch(f -> f.getName().equalsIgnoreCase(GIT_FOLDER_NAME));
     }
 
-    private Map<CHANGE, Map<String, List<String>>> collectProjectFolders(List<File> projectFolders) {
-        Map<CHANGE, Map<String, List<String>>> projectDifferences = new HashMap<>();
-        projectFolders.forEach(folder -> processGitStatus(projectDifferences, folder));
-        return projectDifferences;
+    private Map<String, List<String>> collectProjectFolders(List<File> projectFolders) {
+        Map<String, Map <COMMAND, List<String>>> projectDifferences = new HashMap<>();
+        projectFolders.forEach(f -> processGitStatus(f, projectDifferences));
+        return null;
     }
 
-    private void processGitStatus(Map<CHANGE, Map<String, List<String>>> projectDifferences, File folder) {
+    private void processGitStatus(File folder, Map<String, Map <COMMAND, List<String>>> projectDifferences) {
         ProcessBuilder processBuilder = new ProcessBuilder();
         processBuilder.command(GIT_APP_PATH, STATUS.getValue());
         processBuilder.directory(folder);
@@ -91,17 +89,42 @@ public class ChangeProcessorTask implements Runnable {
             Process process = processBuilder.start();
             BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
 
-
             StringBuilder outputContent = new StringBuilder();
             reader.lines().forEach(outputContent::append);
+
+
             int exitCode = process.waitFor();
             log.debug("Exited with error code: " + exitCode);
 
-            
+            COMMAND preferableGitCommand = getCommandByGitStatus(outputContent.toString());
+            List<String> changes = null;
+            if(preferableGitCommand.equals(COMMAND.ADD)) {
+                changes = getGitChanges(outputContent.toString());
+            }
 
+            Map <COMMAND, List<String>> projectChangeContent = new HashMap<>();
+            projectChangeContent.put(preferableGitCommand, changes);
 
+            projectDifferences.put(folder.getPath(), projectChangeContent);
         } catch (IOException | InterruptedException e) {
             log.error(e.getMessage());
         }
+    }
+
+    private List<String> getGitChanges(String gitStatusOutput) {
+
+        
+
+        return null;
+    }
+
+    private COMMAND getCommandByGitStatus(String gitStatusOutput) {
+        if (gitStatusOutput.contains("Changes not staged for commit")){
+            return COMMAND.ADD;
+        }
+        if (gitStatusOutput.contains("branch is ahead")){
+            return COMMAND.PUSH;
+        }
+        return STATUS;
     }
 }
