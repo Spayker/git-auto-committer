@@ -89,19 +89,16 @@ public class ChangeProcessorTask implements Runnable {
             Process process = processBuilder.start();
             BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
 
-            StringBuilder outputContent = new StringBuilder();
-            reader.lines().forEach(outputContent::append);
-
+            final StringBuilder outputContent = new StringBuilder();
+            final List<String> changes = new ArrayList<>();
+            reader.lines().forEach(line -> {
+                collectChanges(changes, line);
+            });
 
             int exitCode = process.waitFor();
             log.debug("Exited with error code: " + exitCode);
 
             COMMAND preferableGitCommand = getCommandByGitStatus(outputContent.toString());
-            List<String> changes = null;
-            if(preferableGitCommand.equals(COMMAND.ADD)) {
-                changes = getGitChanges(outputContent.toString());
-            }
-
             Map <COMMAND, List<String>> projectChangeContent = new HashMap<>();
             projectChangeContent.put(preferableGitCommand, changes);
 
@@ -111,11 +108,19 @@ public class ChangeProcessorTask implements Runnable {
         }
     }
 
-    private List<String> getGitChanges(String gitStatusOutput) {
+    private void collectChanges(List<String> changes, String outputStatusRow) {
+        if(outputStatusRow.contains("modified:")) {
+            changes.add(outputStatusRow);
+        }
 
-        
+        if(outputStatusRow.contains("New ")) {
+            changes.add(outputStatusRow);
+        }
 
-        return null;
+        if(outputStatusRow.contains("deleted:")) {
+            changes.add(outputStatusRow);
+        }
+
     }
 
     private COMMAND getCommandByGitStatus(String gitStatusOutput) {
