@@ -97,7 +97,7 @@ public class ChangeProcessorTask implements Runnable {
             int exitCode = process.waitFor();
             log.debug("Exited with error code: " + exitCode);
 
-
+            
 
 
         } catch (IOException | InterruptedException e) {
