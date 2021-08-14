@@ -1,6 +1,6 @@
 [![GitHub license](https://img.shields.io/github/license/mashape/apistatus.svg)](https://github.com/Spayker/git-auto-committer/blob/master/LICENSE)
 [![Build Status](https://travis-ci.com/Spayker/git-auto-committer.svg?branch=main)](https://travis-ci.org/Spayker/git-auto-committer)
-[![codecov.io](https://codecov.io/github/Spayker/git-auto-committer/coverage.svg?branch=main)](https://codecov.io/github/Spayker/git-auto-committer?branch=main)
+[![codecov](https://codecov.io/gh/Spayker/git-auto-committer/branch/main/graph/badge.svg?token=NG3LSW9URA)](https://codecov.io/gh/Spayker/git-auto-committer)
 
 # jgac - PoC
 
