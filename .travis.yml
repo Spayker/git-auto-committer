@@ -3,10 +3,7 @@ dist: xenial
 sudo: required
 
 jdk:
-  - openjdk8
-
-
-script: "mvn cobertura:cobertura"
+  - openjdk11
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)
