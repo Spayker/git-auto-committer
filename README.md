@@ -1,5 +1,5 @@
 [![GitHub license](https://img.shields.io/github/license/mashape/apistatus.svg)](https://github.com/Spayker/git-auto-committer/blob/master/LICENSE)
-[![Build Status](https://travis-ci.com/Spayker/git-auto-committer.svg?branch=master)](https://travis-ci.org/Spayker/git-auto-committer)
+[![Build Status](https://travis-ci.com/Spayker/git-auto-committer.svg?branch=main)](https://travis-ci.org/Spayker/git-auto-committer)
 
 # jgac - PoC
 
