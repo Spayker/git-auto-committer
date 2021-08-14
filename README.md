@@ -1,3 +1,6 @@
+[![GitHub license](https://img.shields.io/github/license/mashape/apistatus.svg)](https://github.com/Spayker/git-auto-committer/blob/master/LICENSE)
+[![Build Status](https://travis-ci.com/Spayker/git-auto-committer.svg?branch=master)](https://travis-ci.org/Spayker/git-auto-committer)
+
 # jgac - PoC
 
 Basically a try to automate typical and annoying processes while working with code in git environment. Can be run
