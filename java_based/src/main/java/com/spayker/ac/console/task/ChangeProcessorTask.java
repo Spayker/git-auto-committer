@@ -1,6 +1,5 @@
 package com.spayker.ac.console.task;
 
-import com.spayker.ac.console.model.git.CHANGE;
 import com.spayker.ac.console.model.git.COMMAND;
 import lombok.extern.slf4j.Slf4j;
 
@@ -10,7 +9,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
