@@ -8,9 +8,11 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -57,6 +59,20 @@ class ChangeProcessorTaskTest {
         );
     }
 
+    private static Stream<Arguments> provideUnstableStableFilesToScan() {
+        return Stream.of(
+                Arguments.of(new File("           ")),
+                Arguments.of(new File("////////")),
+                Arguments.of(new File("dgdfgdfgdfg"))
+        );
+    }
+
+    private static Stream<Arguments> provideStableFilesToScan() {
+        return Stream.of(
+            Arguments.of(new File(System.getProperty("user.dir")))
+        );
+    }
+
     @ParameterizedTest
     @MethodSource("provideGitAddOutput")
     @DisplayName("Returns add git command according to received git status output")
@@ -99,7 +115,7 @@ class ChangeProcessorTaskTest {
     @ParameterizedTest
     @MethodSource("provideOutputGitStatusChanges")
     @DisplayName("Returns git status command according to received git status output")
-    public void shouldCollectChanges(List<String> changes, String outputStatusRow) {
+    public void shouldCollectProjectFolders(List<String> changes, String outputStatusRow) {
         // given
         // when
         changeProcessorTask.collectChanges(changes, outputStatusRow);
@@ -108,6 +124,18 @@ class ChangeProcessorTaskTest {
         assertNotNull(changes);
         assertFalse(changes.isEmpty());
         assertEquals(outputStatusRow, changes.get(0));
+    }
+
+    @ParameterizedTest
+    @MethodSource("provideStableFilesToScan")
+    @DisplayName("Returns collect git change map container")
+    public void shouldCollectChanges(File folder) {
+        // given
+        // when
+        Map<String, Map<COMMAND, List<String>>> collectedFolders =  changeProcessorTask.collectProjectFolders(Collections.singletonList(folder));
+
+        // then
+        assertNotNull(collectedFolders);
     }
 
 

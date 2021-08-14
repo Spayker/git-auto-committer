@@ -26,7 +26,7 @@ public class GitFolderRecognizerTest {
 
     private static Stream<Arguments> provideStableFilesToScan() {
         return Stream.of(
-            Arguments.of(new File(USER_HOME_FOLDER))
+            Arguments.of(new File(System.getProperty("user.dir")))
         );
     }
 
