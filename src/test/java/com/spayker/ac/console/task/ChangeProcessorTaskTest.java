@@ -107,9 +107,8 @@ class ChangeProcessorTaskTest {
         // then
         assertNotNull(changes);
         assertFalse(changes.isEmpty());
+        assertEquals(outputStatusRow, changes.get(0));
     }
-
-
 
 
 }
