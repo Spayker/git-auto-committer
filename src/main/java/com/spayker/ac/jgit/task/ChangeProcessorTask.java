@@ -1,6 +1,8 @@
 package com.spayker.ac.jgit.task;
 
 import com.spayker.ac.jgit.model.git.GitData;
+import com.spayker.ac.util.file.GitFolderRecognizer;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.GitCommand;
@@ -15,61 +17,30 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static com.spayker.ac.jgit.model.git.CHANGE.*;
 
 @Slf4j
+@AllArgsConstructor
 public class ChangeProcessorTask implements Runnable {
 
     private static final String GIT_REMOTE_TYPE = "origin";
     private static final String GIT_FOLDER_NAME = ".git";
+    private static final String SPACE_CHARACTER = " ";
 
+    private GitFolderRecognizer gitFolderRecognizer;
     private String projectsPath;
     private String accessToken;
 
-    private ChangeProcessorTask() { }
-
-    public ChangeProcessorTask(String projectsPath, String accessToken) {
-        this.projectsPath = projectsPath;
-        this.accessToken = accessToken;
-    }
-
     @Override
     public void run() {
-        File directory = new File(projectsPath);
-        List<File> subFolders = getSubDirs(directory);
-
-        List<File> filteredGitFolders = subFolders.stream()
-                .filter(f -> containGitFolder(f.getPath()))
-                .collect(Collectors.toList());
+        List<File> filteredGitFolders = gitFolderRecognizer.getGitFolders(projectsPath);
         Map<GitData, Map<String, List<String>>> projectDifferences = collectProjectFolders(filteredGitFolders);
         projectDifferences.forEach(this::processFoundChanges);
-    }
-
-    private List<File> getSubDirs(File file) {
-        List<File> subDirs = Arrays.stream(Objects.requireNonNull(file.listFiles(File::isDirectory)))
-                .filter(f -> !f.getName().contains(GIT_FOLDER_NAME))
-                .collect(Collectors.toList());
-
-        List<File> deepSubDirs = new ArrayList<>();
-        for(File subDir: subDirs) {
-            deepSubDirs.addAll(getSubDirs(subDir));
-        }
-        subDirs.addAll(deepSubDirs);
-        return subDirs;
-    }
-
-    private boolean containGitFolder(String absolutePath) {
-        File directory = new File(absolutePath);
-        File[] sameLevelFolders = directory.listFiles(File::isDirectory);
-        return Arrays.stream(Objects.requireNonNull(sameLevelFolders))
-                .anyMatch(f -> f.getName().equalsIgnoreCase(GIT_FOLDER_NAME));
     }
 
     private void processFoundChanges(GitData gitData, Map<String, List<String>> changes) {
@@ -89,7 +60,7 @@ public class ChangeProcessorTask implements Runnable {
                 List<String> fileNames = changes.get(changeType);
                 fileNames.forEach(f -> {
                     commitMessage.append(changeType)
-                        .append(" ")
+                        .append(SPACE_CHARACTER)
                         .append(Paths.get(f).getFileName())
                         .append(System.lineSeparator());
                     executeGitCommand(git.add().addFilepattern(f));
@@ -165,7 +136,6 @@ public class ChangeProcessorTask implements Runnable {
         if(untracked.size() > 0) {
             changes.put(UNTRACKED.getValue(), untracked);
         }
-
         return changes;
     }
 

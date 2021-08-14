@@ -1,9 +1,10 @@
-package com.spayker.ac.console;
+package com.spayker.ac.jgit;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import com.spayker.ac.console.model.ApplicationConfig;
-import com.spayker.ac.console.task.ChangeProcessorTask;
+import com.spayker.ac.jgit.model.ApplicationConfig;
+import com.spayker.ac.jgit.task.ChangeProcessorTask;
+import com.spayker.ac.util.file.GitFolderRecognizer;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
@@ -62,14 +63,14 @@ public class Main {
                 return;
             }
         }
-        scheduler.scheduleAtFixedRate(new ChangeProcessorTask(path, token), initialDelay, period, UNIT);
+        scheduler.scheduleAtFixedRate(new ChangeProcessorTask(new GitFolderRecognizer(), path, token), initialDelay, period, UNIT);
     }
 
     private static String getToken(final List<String> args) {
         for (String arg : args) {
-            if (arg.toLowerCase().contains(APP_GIT_TOKEN_PREFIX)) {
-                return arg;
-            }
+           if (arg.toLowerCase().contains(APP_GIT_TOKEN_PREFIX)) {
+               return arg;
+           }
         }
         return null;
     }
