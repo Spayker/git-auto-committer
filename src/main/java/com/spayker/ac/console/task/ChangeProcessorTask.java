@@ -40,6 +40,7 @@ public class ChangeProcessorTask implements Runnable {
             log.warn("No git projects found by provided path: " + projectsPath);
         } else {
             Map<String, Map <COMMAND, List<String>>> projectDifferences = collectProjectFolders(filteredGitFolders);
+
             //processGitFolders(projectDifferences);
         }
     }
