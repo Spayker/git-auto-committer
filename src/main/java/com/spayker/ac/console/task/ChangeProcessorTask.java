@@ -10,13 +10,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 import static com.spayker.ac.console.model.git.COMMAND.STATUS;
 
@@ -40,8 +37,29 @@ public class ChangeProcessorTask implements Runnable {
             log.warn("No git projects found by provided path: " + projectsPath);
         } else {
             Map<String, Map <COMMAND, List<String>>> projectDifferences = collectProjectFolders(filteredGitFolders);
+            projectDifferences.forEach(this::performRemoteRepoUpdate);
+        }
+    }
 
-            //processGitFolders(projectDifferences);
+    private void performRemoteRepoUpdate(String projectPath, Map<COMMAND, List<String>> commandListMap) {
+        log.debug("Performing git repo update for: " + projectPath);
+        COMMAND commandType = STATUS;
+        StringBuilder commitMessage = new StringBuilder();
+        for (COMMAND command : commandListMap.keySet()){
+            commandType = command;
+            List<String> changes = commandListMap.get(command);
+            changes.forEach(commitMessage::append);
+        }
+
+        switch (commandType) {
+            case ADD:
+            case COMMIT: {
+
+                break;
+            }
+            case PUSH: {
+
+            }
         }
     }
 
@@ -62,14 +80,21 @@ public class ChangeProcessorTask implements Runnable {
 
             StringBuilder outputContent = new StringBuilder();
             List<String> changes = new ArrayList<>();
-            reader.lines().forEach(line ->  collectChanges(changes, line));
+            reader.lines().forEach(line ->  {
+                outputContent.append(line);
+                collectChanges(changes, line);
+            });
 
             int exitCode = process.waitFor();
             log.debug("Exited with error code: " + exitCode);
 
-            COMMAND preferableGitCommand = getCommandByGitStatus(outputContent.toString());
-            Map <COMMAND, List<String>> projectChangeContent = Collections.singletonMap(preferableGitCommand, changes);
-            projectDifferences.put(folder.getPath(), projectChangeContent);
+            if(!changes.isEmpty()) {
+                COMMAND preferableGitCommand = getCommandByGitStatus(outputContent.toString());
+                if(!preferableGitCommand.equals(STATUS)){
+                    Map <COMMAND, List<String>> projectChangeContent = Collections.singletonMap(preferableGitCommand, changes);
+                    projectDifferences.put(folder.getPath(), projectChangeContent);
+                }
+            }
         } catch (IOException | InterruptedException e) {
             log.error(e.getMessage());
         }
