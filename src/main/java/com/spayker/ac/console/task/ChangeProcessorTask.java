@@ -54,7 +54,7 @@ public class ChangeProcessorTask implements Runnable {
         switch (commandType) {
             case ADD:
             case COMMIT: {
-
+                
                 break;
             }
             case PUSH: {
