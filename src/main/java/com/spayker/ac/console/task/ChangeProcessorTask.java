@@ -1,6 +1,7 @@
 package com.spayker.ac.console.task;
 
 import com.spayker.ac.console.model.git.COMMAND;
+import com.spayker.ac.console.task.factory.GitProcessFactory;
 import com.spayker.ac.util.file.GitFolderRecognizer;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -70,10 +71,7 @@ public class ChangeProcessorTask implements Runnable {
     }
 
     void processGitStatus(File folder, Map<String, Map <COMMAND, List<String>>> projectDifferences) {
-        ProcessBuilder processBuilder = new ProcessBuilder();
-        processBuilder.command(GIT_APP_PATH, STATUS.getValue());
-        processBuilder.directory(folder);
-
+        ProcessBuilder processBuilder = GitProcessFactory.createProcessBuilder(folder, GIT_APP_PATH, STATUS.getValue());
         try {
             Process process = processBuilder.start();
             BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
