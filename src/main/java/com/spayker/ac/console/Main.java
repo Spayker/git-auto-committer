@@ -63,7 +63,7 @@ public class Main {
                 return;
             }
         }
-        scheduler.scheduleAtFixedRate(new ChangeProcessorTask(new GitFolderRecognizer(), path, token), initialDelay, period, UNIT);
+        scheduler.scheduleAtFixedRate(new ChangeProcessorTask(new GitFolderRecognizer(), path), initialDelay, period, UNIT);
     }
 
     private static String getToken(final List<String> args) {
