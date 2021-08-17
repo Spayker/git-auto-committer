@@ -27,9 +27,8 @@ class ChangeProcessorTaskTest {
     public void setup() {
         GitFolderRecognizer gitFolderRecognizer = new GitFolderRecognizer();
         String projectsPath = System.getProperty("user.dir");
-        String accessToken = "ghp_ertwefdsgfdfg";
 
-        changeProcessorTask = new ChangeProcessorTask(gitFolderRecognizer, projectsPath, accessToken);
+        changeProcessorTask = new ChangeProcessorTask(gitFolderRecognizer, projectsPath);
     }
 
     private static Stream<Arguments> provideGitAddOutput() {
@@ -131,7 +130,7 @@ class ChangeProcessorTaskTest {
     public void shouldCollectChanges(File folder) {
         // given
         // when
-        Map<String, Map<COMMAND, List<String>>> collectedFolders =  changeProcessorTask.collectProjectFolders(Collections.singletonList(folder));
+        Map<File, Map<COMMAND, List<String>>> collectedFolders =  changeProcessorTask.collectProjectFolders(Collections.singletonList(folder));
 
         // then
         assertNotNull(collectedFolders);
