@@ -27,10 +27,10 @@ import static com.spayker.ac.console.model.git.COMMAND.STATUS;
 @AllArgsConstructor
 public class ChangeProcessorTask implements Runnable {
 
-    private static final String GIT_REMOTE_TYPE = "origin";
 
     // toDo: set git path read from config file
     private static final String GIT_APP_PATH = "C:\\Program Files\\Git\\cmd\\git.exe";
+    private static final String GIT_PUSH_REMOTE_OPTION = "origin";
     private static final String GIT_ADD_ALL_OPTION = ".";
     private static final String GIT_COMMIT_OPTION = "-m ";
     private static final String SPACE = " ";
@@ -62,6 +62,9 @@ public class ChangeProcessorTask implements Runnable {
         for (COMMAND incomingCommand : commandListMap.keySet()) {
             StringBuilder gitParams;
             ProcessBuilder processBuilder;
+
+            //todo: form command scenario
+            //todo: remove explicit string expressions
             switch (incomingCommand) {
                 case ADD: {
                     gitParams = new StringBuilder();
@@ -88,7 +91,7 @@ public class ChangeProcessorTask implements Runnable {
                 }
                 case PUSH: {
                     gitParams = new StringBuilder();
-                    gitParams.append(SPACE).append(PUSH.getValue()).append(SPACE).append("origin ");
+                    gitParams.append(SPACE).append(PUSH.getValue()).append(SPACE).append(GIT_PUSH_REMOTE_OPTION).append(SPACE);
                     processBuilder = GitProcessFactory.createProcessBuilder(folder, GIT_APP_PATH, gitParams.toString());
                     processBuilder.start().waitFor();
                 }
@@ -142,6 +145,7 @@ public class ChangeProcessorTask implements Runnable {
     }
 
     void collectChanges(List<String> changes, String outputStatusRow) {
+        //todo: remove explicit string expressions
         if(outputStatusRow.contains("modified:")) {
             changes.add(outputStatusRow);
         }
@@ -154,6 +158,7 @@ public class ChangeProcessorTask implements Runnable {
     }
 
     COMMAND getCommandByGitStatus(String gitStatusOutput) {
+        //todo: remove explicit string expressions
         if (gitStatusOutput.contains("Changes not staged for commit")){
             return COMMAND.ADD;
         }
