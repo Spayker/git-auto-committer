@@ -9,6 +9,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -27,7 +28,6 @@ class ChangeProcessorTaskTest {
     public void setup() {
         GitFolderRecognizer gitFolderRecognizer = new GitFolderRecognizer();
         String projectsPath = System.getProperty("user.dir");
-
         changeProcessorTask = new ChangeProcessorTask(gitFolderRecognizer, projectsPath);
     }
 
@@ -127,7 +127,7 @@ class ChangeProcessorTaskTest {
     @ParameterizedTest
     @MethodSource("provideStableFilesToScan")
     @DisplayName("Returns collect git change map container")
-    public void shouldCollectChanges(File folder) {
+    public void shouldCollectChanges(File folder) throws IOException, InterruptedException {
         // given
         // when
         Map<File, Map<COMMAND, List<String>>> collectedFolders =  changeProcessorTask.collectProjectFolders(Collections.singletonList(folder));

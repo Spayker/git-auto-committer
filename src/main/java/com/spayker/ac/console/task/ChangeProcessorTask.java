@@ -18,6 +18,8 @@ import java.util.Map;
 import java.util.Optional;
 
 import static com.spayker.ac.console.model.git.COMMAND.ADD;
+import static com.spayker.ac.console.model.git.COMMAND.BRANCH;
+import static com.spayker.ac.console.model.git.COMMAND.COMMIT;
 import static com.spayker.ac.console.model.git.COMMAND.PUSH;
 import static com.spayker.ac.console.model.git.COMMAND.STATUS;
 
@@ -29,7 +31,9 @@ public class ChangeProcessorTask implements Runnable {
 
     // toDo: set git path read from config file
     private static final String GIT_APP_PATH = "C:\\Program Files\\Git\\cmd\\git.exe";
-    private static final String GIT_ADD_ALL_OPTION = " .";
+    private static final String GIT_ADD_ALL_OPTION = ".";
+    private static final String GIT_COMMIT_OPTION = "-m ";
+    private static final String SPACE = " ";
 
     private final GitFolderRecognizer gitFolderRecognizer;
     private final String projectsPath;
@@ -40,43 +44,68 @@ public class ChangeProcessorTask implements Runnable {
         if (filteredGitFolders.isEmpty()) {
             log.warn("No git projects found by provided path: " + projectsPath);
         } else {
-            Map<File, Map <COMMAND, List<String>>> projectDifferences = collectProjectFolders(filteredGitFolders);
-            projectDifferences.forEach(this::performRemoteRepoUpdate);
+            try {
+                Map<File, Map <COMMAND, List<String>>> projectDifferences = collectProjectFolders(filteredGitFolders);
+                for (File folder : projectDifferences.keySet()){
+                    Map<COMMAND, List<String>> commandListMap = projectDifferences.get(folder);
+                    performRemoteRepoUpdate(folder, commandListMap);
+                }
+            } catch (IOException | InterruptedException e) {
+                log.error(e.getMessage());
+            }
         }
     }
 
-    private void performRemoteRepoUpdate(File folder, Map<COMMAND, List<String>> commandListMap) {
+    private void performRemoteRepoUpdate(File folder, Map<COMMAND, List<String>> commandListMap) throws IOException, InterruptedException {
         log.debug("Performing git repo update for: " + folder.getPath());
 
         for (COMMAND incomingCommand : commandListMap.keySet()) {
-            StringBuilder gitParams = new StringBuilder();
+            StringBuilder gitParams;
+            ProcessBuilder processBuilder;
             switch (incomingCommand) {
                 case ADD: {
-                    gitParams.append(ADD.getValue()).append(GIT_ADD_ALL_OPTION);
-                    break;
+                    gitParams = new StringBuilder();
+                    gitParams.append(ADD.getValue()).append(SPACE).append(GIT_ADD_ALL_OPTION);
+                    processBuilder = GitProcessFactory.createProcessBuilder(folder, GIT_APP_PATH, gitParams.toString());
+                    processBuilder.start().waitFor();
                 }
                 case COMMIT: {
+                    gitParams = new StringBuilder();
+                    gitParams.append(COMMIT.getValue()).append(SPACE).append(GIT_COMMIT_OPTION).append(SPACE).append('"');
                     List<String> changes = commandListMap.get(incomingCommand);
                     changes.forEach(gitParams::append);
-                    break;
+                    gitParams.append('"');
+                    processBuilder = GitProcessFactory.createProcessBuilder(folder, GIT_APP_PATH, gitParams.toString());
+                    processBuilder.start().waitFor();
+                }
+                case BRANCH: {
+                    gitParams = new StringBuilder();
+                    gitParams.append(SPACE).append(BRANCH.getValue());
+                    List<String> changes = commandListMap.get(incomingCommand);
+                    changes.forEach(gitParams::append);
+                    processBuilder = GitProcessFactory.createProcessBuilder(folder, GIT_APP_PATH, gitParams.toString());
+                    processBuilder.start().waitFor();
                 }
                 case PUSH: {
-                    //todo: get current branch name
-                    gitParams.append(PUSH.getValue()).append("origin branch_name");
+                    gitParams = new StringBuilder();
+                    gitParams.append(SPACE).append(PUSH.getValue()).append(SPACE).append("origin ");
+                    processBuilder = GitProcessFactory.createProcessBuilder(folder, GIT_APP_PATH, gitParams.toString());
+                    processBuilder.start().waitFor();
                 }
             }
-            // todo: finish process build composition
-            // ProcessBuilder processBuilder = GitProcessFactory.createProcessBuilder(folder, GIT_APP_PATH, gitParams.toString());
         }
     }
 
-    Map<File, Map <COMMAND, List<String>>> collectProjectFolders(List<File> projectFolders) {
+    Map<File, Map <COMMAND, List<String>>> collectProjectFolders(List<File> projectFolders) throws IOException, InterruptedException {
         Map<File, Map <COMMAND, List<String>>> projectDifferences = new HashMap<>();
-        projectFolders.forEach(folder -> processGitStatus(folder, projectDifferences));
+
+        for (File folder : projectFolders){
+            processGitStatus(folder, projectDifferences);
+        }
         return projectDifferences;
     }
 
-    void processGitStatus(File folder, Map<File, Map <COMMAND, List<String>>> projectDifferences) {
+    void processGitStatus(File folder, Map<File, Map <COMMAND, List<String>>> projectDifferences) throws IOException, InterruptedException {
         ProcessBuilder processBuilder = GitProcessFactory.createProcessBuilder(folder, GIT_APP_PATH, STATUS.getValue());
         Optional<BufferedReader> gitStatusOutputContent = executeGitCommand(processBuilder);
 
@@ -89,7 +118,9 @@ public class ChangeProcessorTask implements Runnable {
                 collectChanges(changes, line);
             });
 
-            if(!changes.isEmpty()) {
+            if(changes.isEmpty()) {
+                log.info("No git status output found while [" + folder.getName() + "] processing folder");
+            } else {
                 log.info("Found changes at [" + folder.getName() + "] folder");
                 COMMAND preferableGitCommand = getCommandByGitStatus(outputContent.toString());
                 if(!preferableGitCommand.equals(STATUS)){
@@ -98,23 +129,16 @@ public class ChangeProcessorTask implements Runnable {
                 }
             }
         } else {
-            log.warn("No git status output found while [" + folder.getName() + "] processing folder");
+            log.info("No git status output found while [" + folder.getName() + "] processing folder");
         }
     }
 
-    Optional<BufferedReader> executeGitCommand(ProcessBuilder processBuilder) {
-        Optional<BufferedReader> outputContent = Optional.empty();
-        try {
-            Process process = processBuilder.start();
-            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-
-            int exitCode = process.waitFor();
-            log.debug("Exited with error code: " + exitCode);
-            outputContent = Optional.of(reader);
-        } catch (IOException | InterruptedException e) {
-            log.error(e.getMessage());
-        }
-        return outputContent;
+    Optional<BufferedReader> executeGitCommand(ProcessBuilder processBuilder) throws IOException, InterruptedException {
+        Process process = processBuilder.start();
+        BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+        int exitCode = process.waitFor();
+        log.debug("Exited with error code: " + exitCode);
+        return Optional.of(reader);
     }
 
     void collectChanges(List<String> changes, String outputStatusRow) {

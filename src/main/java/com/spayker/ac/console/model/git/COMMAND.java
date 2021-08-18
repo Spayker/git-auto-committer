@@ -5,6 +5,7 @@ public enum COMMAND {
     STATUS("status"),
     ADD("add"),
     COMMIT("commit"),
+    BRANCH("branch"),
     PUSH("push");
 
     private final String value;
