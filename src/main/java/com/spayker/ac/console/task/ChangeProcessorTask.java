@@ -22,6 +22,11 @@ import static com.spayker.ac.console.model.git.COMMAND.BRANCH;
 import static com.spayker.ac.console.model.git.COMMAND.COMMIT;
 import static com.spayker.ac.console.model.git.COMMAND.PUSH;
 import static com.spayker.ac.console.model.git.COMMAND.STATUS;
+import static com.spayker.ac.console.model.git.OUTPUT_MARKER.BRANCH_AHEAD;
+import static com.spayker.ac.console.model.git.OUTPUT_MARKER.DELETED;
+import static com.spayker.ac.console.model.git.OUTPUT_MARKER.MODIFIED;
+import static com.spayker.ac.console.model.git.OUTPUT_MARKER.NEW;
+import static com.spayker.ac.console.model.git.OUTPUT_MARKER.NOT_STAGED;
 
 @Slf4j
 @AllArgsConstructor
@@ -144,24 +149,22 @@ public class ChangeProcessorTask implements Runnable {
     }
 
     void collectChanges(List<String> changes, String outputStatusRow) {
-        //todo: remove explicit string expressions
-        if(outputStatusRow.contains("modified:")) {
+        if(outputStatusRow.contains(MODIFIED.getValue())) {
             changes.add(outputStatusRow);
         }
-        if(outputStatusRow.contains("New ")) {
+        if(outputStatusRow.contains(NEW.getValue())) {
             changes.add(outputStatusRow);
         }
-        if(outputStatusRow.contains("deleted:")) {
+        if(outputStatusRow.contains(DELETED.getValue())) {
             changes.add(outputStatusRow);
         }
     }
 
     COMMAND getCommandByGitStatus(String gitStatusOutput) {
-        //todo: remove explicit string expressions
-        if (gitStatusOutput.contains("Changes not staged for commit")) {
+        if (gitStatusOutput.contains(NOT_STAGED.getValue())) {
             return COMMAND.ADD;
         }
-        if (gitStatusOutput.contains("branch is ahead")) {
+        if (gitStatusOutput.contains(BRANCH_AHEAD.getValue())) {
             return COMMAND.PUSH;
         }
         return STATUS;
