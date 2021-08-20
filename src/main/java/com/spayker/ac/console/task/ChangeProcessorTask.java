@@ -27,12 +27,11 @@ import static com.spayker.ac.console.model.git.COMMAND.STATUS;
 @AllArgsConstructor
 public class ChangeProcessorTask implements Runnable {
 
-
     // toDo: set git path read from config file
     private static final String GIT_APP_PATH = "C:\\Program Files\\Git\\cmd\\git.exe";
     private static final String GIT_PUSH_REMOTE_OPTION = "origin";
     private static final String GIT_ADD_ALL_OPTION = ".";
-    private static final String GIT_COMMIT_OPTION = "-m ";
+    private static final String GIT_COMMIT_OPTION = "-m";
     private static final String SPACE = " ";
 
     private final GitFolderRecognizer gitFolderRecognizer;
@@ -46,7 +45,7 @@ public class ChangeProcessorTask implements Runnable {
         } else {
             try {
                 Map<File, Map <COMMAND, List<String>>> projectDifferences = collectProjectFolders(filteredGitFolders);
-                for (File folder : projectDifferences.keySet()){
+                for (File folder : projectDifferences.keySet()) {
                     Map<COMMAND, List<String>> commandListMap = projectDifferences.get(folder);
                     performRemoteRepoUpdate(folder, commandListMap);
                 }
@@ -102,7 +101,7 @@ public class ChangeProcessorTask implements Runnable {
     Map<File, Map <COMMAND, List<String>>> collectProjectFolders(List<File> projectFolders) throws IOException, InterruptedException {
         Map<File, Map <COMMAND, List<String>>> projectDifferences = new HashMap<>();
 
-        for (File folder : projectFolders){
+        for (File folder : projectFolders) {
             processGitStatus(folder, projectDifferences);
         }
         return projectDifferences;
@@ -112,11 +111,11 @@ public class ChangeProcessorTask implements Runnable {
         ProcessBuilder processBuilder = GitProcessFactory.createProcessBuilder(folder, GIT_APP_PATH, STATUS.getValue());
         Optional<BufferedReader> gitStatusOutputContent = executeGitCommand(processBuilder);
 
-        if(gitStatusOutputContent.isPresent()){
+        if(gitStatusOutputContent.isPresent()) {
             BufferedReader gitStatusOutputReader = gitStatusOutputContent.get();
             List<String> changes = new ArrayList<>();
             StringBuilder outputContent = new StringBuilder();
-            gitStatusOutputReader.lines().forEach(line ->  {
+            gitStatusOutputReader.lines().forEach(line -> {
                 outputContent.append(line);
                 collectChanges(changes, line);
             });
@@ -126,7 +125,7 @@ public class ChangeProcessorTask implements Runnable {
             } else {
                 log.info("Found changes at [" + folder.getName() + "] folder");
                 COMMAND preferableGitCommand = getCommandByGitStatus(outputContent.toString());
-                if(!preferableGitCommand.equals(STATUS)){
+                if(!preferableGitCommand.equals(STATUS)) {
                     Map <COMMAND, List<String>> projectChangeContent = Collections.singletonMap(preferableGitCommand, changes);
                     projectDifferences.put(folder, projectChangeContent);
                 }
@@ -159,10 +158,10 @@ public class ChangeProcessorTask implements Runnable {
 
     COMMAND getCommandByGitStatus(String gitStatusOutput) {
         //todo: remove explicit string expressions
-        if (gitStatusOutput.contains("Changes not staged for commit")){
+        if (gitStatusOutput.contains("Changes not staged for commit")) {
             return COMMAND.ADD;
         }
-        if (gitStatusOutput.contains("branch is ahead")){
+        if (gitStatusOutput.contains("branch is ahead")) {
             return COMMAND.PUSH;
         }
         return STATUS;
