@@ -27,16 +27,9 @@ public class PushCommand extends Command implements GitRunnable {
 
     @Override
     public GitOutputData runCommand(File projectFolder, String gitPath) {
-        ProcessBuilder processBuilder = GitProcessFactory.createProcessBuilder(projectFolder, gitPath, getParam());
+        ProcessBuilder processBuilder = GitProcessFactory.createProcessBuilder(projectFolder, gitPath, GIT_PUSH_REMOTE_OPTION, branchName);
         BufferedReader reader = runOuterProcess(processBuilder);
         reader.lines().forEach(line -> output.append(line));
         return new GitOutputData(output.toString(), null);
-    }
-
-    private String getParam(){
-        StringBuilder gitParams = new StringBuilder();
-        gitParams.append(PUSH.getValue()).append(SPACE).append(GIT_PUSH_REMOTE_OPTION).append(SPACE);
-        log.info("Formed push command: git " + gitParams);
-        return gitParams.toString();
     }
 }

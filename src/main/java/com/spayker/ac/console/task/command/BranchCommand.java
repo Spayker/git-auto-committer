@@ -18,6 +18,10 @@ public class BranchCommand extends Command implements GitRunnable {
 
     private Map<COMMAND, List<String>> commandListMap;
 
+    private static final String REV_PARSE_OPTION = "rev-parse";
+    private static final String ABBREV_REF_OPTION = "--abbrev-ref";
+    private static final String HEAD_OPTION = "HEAD";
+
     private BranchCommand(){
         this.output = new StringBuilder();
     }
@@ -28,17 +32,10 @@ public class BranchCommand extends Command implements GitRunnable {
 
     @Override
     public GitOutputData runCommand(File projectFolder, String gitPath) {
-        ProcessBuilder processBuilder = GitProcessFactory.createProcessBuilder(projectFolder, gitPath, getParam());
+        ProcessBuilder processBuilder = GitProcessFactory.createProcessBuilder(projectFolder, gitPath, REV_PARSE_OPTION, ABBREV_REF_OPTION, HEAD_OPTION);
         BufferedReader reader = runOuterProcess(processBuilder);
         reader.lines().forEach(line -> output.append(line));
         return new GitOutputData(output.toString(), null);
-    }
-
-    private String getParam() {
-        StringBuilder gitParams = new StringBuilder();
-        gitParams.append(BRANCH.getValue());
-        log.info("Formed branch command: git " + gitParams);
-        return gitParams.toString();
     }
 
 }

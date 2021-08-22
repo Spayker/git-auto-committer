@@ -14,6 +14,7 @@ import java.util.Map;
 import static com.spayker.ac.console.task.command.AddCommand.CreateAddCommand;
 import static com.spayker.ac.console.task.command.BranchCommand.CreateBranchCommand;
 import static com.spayker.ac.console.task.command.CommitCommand.CreateCommitCommand;
+import static com.spayker.ac.console.task.command.PushCommand.CreatePushCommand;
 import static com.spayker.ac.console.task.command.StatusCommand.CreateStatusCommand;
 
 @Slf4j
@@ -46,13 +47,12 @@ public class ChangeProcessorTask implements Runnable {
                 case COMMIT: {
                     CreateCommitCommand(commandListMap).runCommand(folder, GIT_APP_PATH);
                 }
-                case BRANCH: {
-                    //toDo: parse branch output to get current branch name
-                    GitOutputData output = CreateBranchCommand(commandListMap).runCommand(folder, GIT_APP_PATH);
-                }
+                case BRANCH:
                 case PUSH: {
+                    GitOutputData output = CreateBranchCommand(commandListMap).runCommand(folder, GIT_APP_PATH);
+                    branchName = output.getOutput();
                     //toDo: replace with branchName after it will be updated with a proper branch name
-                    //CreatePushCommand("main").runCommand(folder, GIT_APP_PATH);
+                    CreatePushCommand(branchName).runCommand(folder, GIT_APP_PATH);
                 }
             }
         }
