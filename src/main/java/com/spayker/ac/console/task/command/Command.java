@@ -7,6 +7,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import static com.spayker.ac.console.model.OUTPUT_MARKER.DELETED;
 import static com.spayker.ac.console.model.OUTPUT_MARKER.MODIFIED;
@@ -24,7 +25,7 @@ abstract class Command {
         try {
             Process process = processBuilder.start();
             BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-            process.waitFor();
+            process.waitFor(5, TimeUnit.SECONDS);
             return reader;
         } catch (IOException | InterruptedException e) {
             log.error(e.getMessage());
