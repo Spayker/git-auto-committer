@@ -1,4 +1,4 @@
-package com.spayker.ac.console.model.git;
+package com.spayker.ac.console.model;
 
 public enum COMMAND {
 

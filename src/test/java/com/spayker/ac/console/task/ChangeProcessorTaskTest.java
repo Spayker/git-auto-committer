@@ -1,6 +1,6 @@
 package com.spayker.ac.console.task;
 
-import com.spayker.ac.console.model.git.COMMAND;
+import com.spayker.ac.console.model.COMMAND;
 import com.spayker.ac.util.file.GitFolderRecognizer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

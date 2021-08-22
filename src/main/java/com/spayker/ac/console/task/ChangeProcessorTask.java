@@ -1,7 +1,7 @@
 package com.spayker.ac.console.task;
 
-import com.spayker.ac.console.model.GitOutput;
-import com.spayker.ac.console.model.git.COMMAND;
+import com.spayker.ac.console.model.GitOutputData;
+import com.spayker.ac.console.model.COMMAND;
 import com.spayker.ac.util.file.GitFolderRecognizer;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -11,11 +11,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.spayker.ac.console.task.git.command.AddCommand.CreateAddCommand;
-import static com.spayker.ac.console.task.git.command.BranchCommand.CreateBranchCommand;
-import static com.spayker.ac.console.task.git.command.CommitCommand.CreateCommitCommand;
-import static com.spayker.ac.console.task.git.command.PushCommand.CreatePushCommand;
-import static com.spayker.ac.console.task.git.command.StatusCommand.CreateStatusCommand;
+import static com.spayker.ac.console.task.command.AddCommand.CreateAddCommand;
+import static com.spayker.ac.console.task.command.BranchCommand.CreateBranchCommand;
+import static com.spayker.ac.console.task.command.CommitCommand.CreateCommitCommand;
+import static com.spayker.ac.console.task.command.StatusCommand.CreateStatusCommand;
 
 @Slf4j
 @AllArgsConstructor
@@ -49,11 +48,11 @@ public class ChangeProcessorTask implements Runnable {
                 }
                 case BRANCH: {
                     //toDo: parse branch output to get current branch name
-                    GitOutput output = CreateBranchCommand(commandListMap).runCommand(folder, GIT_APP_PATH);
+                    GitOutputData output = CreateBranchCommand(commandListMap).runCommand(folder, GIT_APP_PATH);
                 }
                 case PUSH: {
                     //toDo: replace with branchName after it will be updated with a proper branch name
-                    CreatePushCommand("main").runCommand(folder, GIT_APP_PATH);
+                    //CreatePushCommand("main").runCommand(folder, GIT_APP_PATH);
                 }
             }
         }
@@ -61,11 +60,7 @@ public class ChangeProcessorTask implements Runnable {
 
     Map<File, Map <COMMAND, List<String>>> collectProjectFolders(List<File> projectFolders) {
         Map<File, Map <COMMAND, List<String>>> projectDifferences = new HashMap<>();
-        projectFolders.forEach(folder -> processGitStatus(folder, projectDifferences));
+        projectFolders.forEach(folder -> CreateStatusCommand(projectDifferences).runCommand(folder, GIT_APP_PATH));
         return projectDifferences;
-    }
-
-    void processGitStatus(File folder, Map<File, Map <COMMAND, List<String>>> projectDifferences) {
-        CreateStatusCommand(projectDifferences).runCommand(folder, GIT_APP_PATH);
     }
 }
