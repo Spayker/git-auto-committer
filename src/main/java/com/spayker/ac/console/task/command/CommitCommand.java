@@ -37,8 +37,9 @@ public class CommitCommand extends Command implements GitRunnable {
 
     @Override
     public GitOutputData runCommand(File projectFolder, String gitPath) {
-        List<String> changes = Stream.of(commandListMap.getOrDefault(ADD, Collections.emptyList()),
-                commandListMap.getOrDefault(COMMIT, Collections.emptyList()))
+        List<String> changes = Stream.of(
+                    commandListMap.getOrDefault(ADD, Collections.emptyList()),
+                    commandListMap.getOrDefault(COMMIT, Collections.emptyList()))
                 .flatMap(Collection::stream)
                 .distinct()
                 .collect(Collectors.toList());
