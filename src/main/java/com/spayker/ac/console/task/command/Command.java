@@ -21,15 +21,15 @@ abstract class Command {
     static final String SPACE = " ";
 
     BufferedReader runOuterProcess(ProcessBuilder processBuilder){
-        BufferedReader reader = null;
         try {
             Process process = processBuilder.start();
-            reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
             process.waitFor();
+            return reader;
         } catch (IOException | InterruptedException e) {
             log.error(e.getMessage());
         }
-        return reader;
+        return null;
     }
 
     void collectChanges(List<String> changes, String outputStatusRow) {

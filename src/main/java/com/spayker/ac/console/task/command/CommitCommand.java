@@ -19,6 +19,7 @@ public class CommitCommand extends Command implements GitRunnable {
     private Map<COMMAND, List<String>> commandListMap;
 
     private static final String GIT_COMMIT_OPTION = "-m";
+    private static final char GIT_NEW_LINE_CHAR = '\n';
     private static final char QUOTE_CHARACTER = '"';
 
     private CommitCommand(){
@@ -41,7 +42,7 @@ public class CommitCommand extends Command implements GitRunnable {
     private String getParam(List<String> changes){
         StringBuilder gitParams = new StringBuilder();
         gitParams.append(QUOTE_CHARACTER);
-        changes.forEach(gitParams::append);
+        changes.forEach(change -> gitParams.append(change).append(GIT_NEW_LINE_CHAR));
         gitParams.append(QUOTE_CHARACTER);
         log.info("Formed commit command: git " + gitParams);
         return gitParams.toString();
