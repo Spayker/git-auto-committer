@@ -22,6 +22,8 @@ import static com.spayker.ac.console.task.command.StatusCommand.CreateStatusComm
 public class ChangeProcessorTask implements Runnable {
 
     private static final String GIT_APP_PATH = "C:\\Program Files\\Git\\cmd\\git.exe";
+    private static final String GIT_DEFAULT_BRANCH_NAME = "main";
+
     private final GitFolderRecognizer gitFolderRecognizer;
     private final String projectsPath;
 
@@ -39,7 +41,7 @@ public class ChangeProcessorTask implements Runnable {
         log.debug("Performing git repo update for: " + folder.getPath());
 
         for (COMMAND incomingCommand : commandListMap.keySet()) {
-            String branchName;
+            String branchName = GIT_DEFAULT_BRANCH_NAME;
             switch (incomingCommand) {
                 case ADD: {
                     CreateAddCommand().runCommand(folder, GIT_APP_PATH);
@@ -47,11 +49,11 @@ public class ChangeProcessorTask implements Runnable {
                 case COMMIT: {
                     CreateCommitCommand(commandListMap).runCommand(folder, GIT_APP_PATH);
                 }
-                case BRANCH:
-                case PUSH: {
+                case BRANCH: {
                     GitOutputData output = CreateBranchCommand(commandListMap).runCommand(folder, GIT_APP_PATH);
                     branchName = output.getOutput();
-                    //toDo: replace with branchName after it will be updated with a proper branch name
+                }
+                case PUSH: {
                     CreatePushCommand(branchName).runCommand(folder, GIT_APP_PATH);
                 }
             }
