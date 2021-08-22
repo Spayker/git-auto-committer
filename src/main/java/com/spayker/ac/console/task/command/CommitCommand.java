@@ -40,6 +40,7 @@ public class CommitCommand extends Command implements GitRunnable {
         List<String> changes = Stream.of(commandListMap.getOrDefault(ADD, Collections.emptyList()),
                 commandListMap.getOrDefault(COMMIT, Collections.emptyList()))
                 .flatMap(Collection::stream)
+                .distinct()
                 .collect(Collectors.toList());
 
         ProcessBuilder processBuilder = GitProcessFactory.createProcessBuilder(projectFolder, gitPath, COMMIT.getValue(), GIT_COMMIT_OPTION, getParam(changes));
