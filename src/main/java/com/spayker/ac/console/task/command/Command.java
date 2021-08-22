@@ -21,11 +21,13 @@ abstract class Command {
 
     static final String SPACE = " ";
 
+    private static final int PREFERABLE_WAIT_COMMAND_TIME = 5;
+
     BufferedReader runOuterProcess(ProcessBuilder processBuilder){
         try {
             Process process = processBuilder.start();
             BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-            process.waitFor(5, TimeUnit.SECONDS);
+            process.waitFor(PREFERABLE_WAIT_COMMAND_TIME, TimeUnit.SECONDS);
             return reader;
         } catch (IOException | InterruptedException e) {
             log.error(e.getMessage());

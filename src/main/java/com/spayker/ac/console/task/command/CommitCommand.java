@@ -7,9 +7,14 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import static com.spayker.ac.console.model.COMMAND.ADD;
 import static com.spayker.ac.console.model.COMMAND.COMMIT;
 
 @Slf4j
@@ -32,7 +37,11 @@ public class CommitCommand extends Command implements GitRunnable {
 
     @Override
     public GitOutputData runCommand(File projectFolder, String gitPath) {
-        List<String> changes = commandListMap.get(COMMIT);
+        List<String> changes = Stream.of(commandListMap.getOrDefault(ADD, Collections.emptyList()),
+                commandListMap.getOrDefault(COMMIT, Collections.emptyList()))
+                .flatMap(Collection::stream)
+                .collect(Collectors.toList());
+
         ProcessBuilder processBuilder = GitProcessFactory.createProcessBuilder(projectFolder, gitPath, COMMIT.getValue(), GIT_COMMIT_OPTION, getParam(changes));
         BufferedReader reader = runOuterProcess(processBuilder);
         reader.lines().forEach(line -> output.append(line));
