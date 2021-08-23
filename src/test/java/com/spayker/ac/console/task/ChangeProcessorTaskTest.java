@@ -70,8 +70,8 @@ class ChangeProcessorTaskTest {
             Arguments.of(new File(System.getProperty("user.dir")))
         );
     }
-
-    @ParameterizedTest
+    //toDo: rework test suit
+    /*@ParameterizedTest
     @MethodSource("provideGitAddOutput")
     @DisplayName("Returns add git command according to received git status output")
     public void shouldReturnGitAddCommandByProvidedGitStatus(String gitStatusOutput) {
@@ -123,7 +123,7 @@ class ChangeProcessorTaskTest {
         assertNotNull(changes);
         assertFalse(changes.isEmpty());
         assertEquals(outputStatusRow, changes.get(0));
-    }
+    }*/
 
     @ParameterizedTest
     @MethodSource("provideStableFilesToScan")
