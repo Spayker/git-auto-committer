@@ -71,8 +71,7 @@ class ChangeProcessorTaskTest {
         );
     }
 
-    //toDo: rework test suit
-    /*@ParameterizedTest
+    @ParameterizedTest
     @MethodSource("provideGitAddOutput")
     @DisplayName("Returns add git command according to received git status output")
     public void shouldReturnGitAddCommandByProvidedGitStatus(String gitStatusOutput) {
@@ -83,10 +82,9 @@ class ChangeProcessorTaskTest {
         // then
         assertNotNull(command);
         assertEquals(command, COMMAND.ADD);
-    }*/
+    }
 
-    //toDo: rework test suit
-    /*@ParameterizedTest
+    @ParameterizedTest
     @MethodSource("provideGitPushOutput")
     @DisplayName("Returns push git command according to received git status output")
     public void shouldReturnGitPushCommandByProvidedGitStatus(String gitStatusOutput) {
@@ -97,10 +95,9 @@ class ChangeProcessorTaskTest {
         // then
         assertNotNull(command);
         assertEquals(command, COMMAND.PUSH);
-    }*/
+    }
 
-    //toDo: rework test suit
-    /*@ParameterizedTest
+    @ParameterizedTest
     @MethodSource("provideGitStatusOutput")
     @DisplayName("Returns git status command according to received git status output")
     public void shouldReturnGitStatusCommandByProvidedGitStatus(String gitStatusOutput) {
@@ -111,10 +108,10 @@ class ChangeProcessorTaskTest {
         // then
         assertNotNull(command);
         assertEquals(command, COMMAND.STATUS);
-    }*/
+    }
 
-    //toDo: rework test suit
-    /*@ParameterizedTest
+
+    @ParameterizedTest
     @MethodSource("provideOutputGitStatusChanges")
     @DisplayName("Returns git status command according to received git status output")
     public void shouldCollectProjectFolders(List<String> changes, String outputStatusRow) {
@@ -126,7 +123,7 @@ class ChangeProcessorTaskTest {
         assertNotNull(changes);
         assertFalse(changes.isEmpty());
         assertEquals(outputStatusRow, changes.get(0));
-    }*/
+    }
 
     @ParameterizedTest
     @MethodSource("provideStableFilesToScan")
