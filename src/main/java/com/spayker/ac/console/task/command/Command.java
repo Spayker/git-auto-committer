@@ -19,8 +19,6 @@ abstract class Command {
     @Getter
     StringBuilder output = new StringBuilder();
 
-    static final String SPACE = " ";
-
     BufferedReader runOuterProcess(ProcessBuilder processBuilder){
         try {
             Process process = processBuilder.start();
