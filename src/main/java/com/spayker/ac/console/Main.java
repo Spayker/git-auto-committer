@@ -21,7 +21,6 @@ public class Main {
 
     private static final String APP_CURRENT_DIR = System.getProperty("user.dir");
     private static final String APP_YAML_CONFIG_PATH = "/jgac.yml";
-    private static final String APP_GIT_TOKEN_PREFIX = "ghp_";
 
     private static final int POOL_SIZE = 1;
     private static final int DEFAULT_INITIAL_DELAY_MIN = 0;
@@ -38,18 +37,12 @@ public class Main {
         final String path = getPath(arguments);
         log.info("Working Directory = " + path);
 
-        // get token
-        String token = getToken(arguments);
-
         try {
             // check yaml config
             ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
             mapper.findAndRegisterModules();
             ApplicationConfig appConfig = mapper.readValue(new File(path + APP_YAML_CONFIG_PATH), ApplicationConfig.class);
 
-            if(token == null) {
-                token = appConfig.getToken();
-            }
             initialDelay = appConfig.getInitialDelay();
             period = appConfig.getRunPeriod();
         } catch (IOException e) {
@@ -58,21 +51,8 @@ public class Main {
             initialDelay = DEFAULT_INITIAL_DELAY_MIN;
             log.info("Setting up default values for schedule period: " + DEFAULT_PERIOD_MIN + " minutes");
             period = DEFAULT_PERIOD_MIN;
-            if(token == null) {
-                log.info("token was not found in config file, can't proceed next");
-                return;
-            }
         }
         scheduler.scheduleAtFixedRate(new ChangeProcessorTask(new GitFolderRecognizer(), path), initialDelay, period, UNIT);
-    }
-
-    private static String getToken(final List<String> args) {
-        for (String arg : args) {
-            if (arg.toLowerCase().contains(APP_GIT_TOKEN_PREFIX)) {
-                return arg;
-            }
-        }
-        return null;
     }
 
     private static String getPath(final List<String> args) {
